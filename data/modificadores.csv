@@ -1,0 +1,9 @@
+Modificador,ID Grupo modificador,Título,Mínima cantidad,Máxima cantidad
+BURG001,1,Punto de Cocción,1,1
+BURG001,1,Aderezo Clásico,0,2
+BURG001,2,Extra Queso,0,1
+BURG002,1,Punto de Cocción,1,1
+BURG002,1,Aderezos Especiales,0,3
+BURG002,3,Quitar Ingrediente,0,2
+BEB001,10,Con Hielo,0,1
+BURG003,1,Aderezo Vegetariano,0,1
