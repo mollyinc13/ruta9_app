@@ -1,0 +1,6 @@
+Subcategoría,Código,Nombre,Descripción,Precio,Costo,Proveedor,Activo,Favorito,Control de Stock,Stock,Margen,Contiene modificadores,Permitir vender solo,Posición
+Hamburguesas,BURG001,Clásica,Hamburguesa simple con lechuga y tomate,4500,1500,ProvA,TRUE,TRUE,TRUE,50,3000,TRUE,TRUE,1
+Hamburguesas,BURG002,Doble Queso,Doble carne, doble queso cheddar,6500,2500,ProvA,VERDADERO,FALSE,TRUE,,4000,TRUE,TRUE,2
+Bebidas,BEB001,Gaseosa Cola,Lata 350ml,1500,500,ProvB,1,0,FALSE,,,FALSO,TRUE,10
+Acompañamientos,ACOM001,Papas Fritas,Porción de papas fritas,2000,700,ProvC,yes,no,true,100,,FALSE,TRUE,20
+Hamburguesas,BURG003,Vegetariana,Hamburguesa de lentejas,5500,2000,ProvA,true,false,true,30,3500,false,true,3
