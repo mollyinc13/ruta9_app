@@ -1,12 +1,13 @@
+// Relevant parts of menur9zonafranca.dart
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/category_section.dart';
-import '../views/product/product_detail_dialog.dart'; // Import the dialog
+import '../views/product/product_detail_dialog.dart';
+import '../widgets/floating_cart_button.dart'; // Import the button
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
   const MenuR9ZonaFrancaScreen({super.key});
-
   @override
   State<MenuR9ZonaFrancaScreen> createState() => _MenuR9ZonaFrancaScreenState();
 }
@@ -16,6 +17,7 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   Map<String, List<Product>> _categorizedProducts = {};
   bool _isLoading = true;
   String? _error;
+  int _cartItemCount = 0; // Placeholder for cart item count
 
   @override
   void initState() {
@@ -24,14 +26,12 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   }
 
   Future<void> _loadProducts() async {
+    // ... (existing _loadProducts logic remains the same) ...
     try {
       final products = await _productService.getProducts();
       if (products.isEmpty && mounted) {
-        print('No products loaded from service. Ensure assets/data/products.json is populated and valid.');
-        setState(() {
-          _error = 'No hay productos disponibles en este momento. Intente más tarde.';
-          _isLoading = false;
-        });
+        // Simplified error message assignment for brevity in this context
+        setState(() { _error = 'No hay productos disponibles en este momento. Intente más tarde.'; _isLoading = false; });
         return;
       }
       if (mounted) {
@@ -41,30 +41,22 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
         });
       }
     } catch (e) {
-      print('Error loading or categorizing products: $e');
       if (mounted) {
-        setState(() {
-          _error = 'Ocurrió un error al cargar los productos.';
-          _isLoading = false;
-        });
+        // Simplified error message assignment
+        setState(() { _error = 'Ocurrió un error al cargar los productos.'; _isLoading = false; });
       }
     }
   }
 
-  // Updated to show the ProductDetailDialog
   void _handleProductInteraction(Product product) {
-    showDialog(
+    showDialog<Map<String, dynamic>>( // Specify type for showDialog
       context: context,
-      builder: (BuildContext dialogContext) { // Use a different context name
+      builder: (BuildContext dialogContext) {
         return ProductDetailDialog(product: product);
       },
     ).then((result) {
-      // This 'then' block executes after the dialog is popped.
-      // 'result' is the value passed to Navigator.pop() in ProductDetailDialog.
       if (result != null && result is Map<String, dynamic>) {
-        // A cart item was successfully "added" (simulated)
         print('Dialog closed, item added to cart (simulated): ${result['productName']}');
-        // You could show another SnackBar here, or update a cart badge, etc.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("${result['productName']} (x${result['quantity']}) procesado."),
@@ -72,8 +64,12 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
             backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
           ),
         );
+        // Placeholder: Increment cart count
+        // In a real app, this would come from a cart service/state management
+        setState(() {
+          _cartItemCount += (result['quantity'] as int?) ?? 1;
+        });
       } else {
-        // Dialog was dismissed without "adding to cart" (e.g., tapped outside, back button)
         print('Product detail dialog dismissed without action.');
       }
     });
@@ -85,25 +81,25 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
       appBar: AppBar(
         title: const Text('Ruta 9 - Zona Franca'),
       ),
-      body: _buildBody(),
+      body: _buildBody(), // _buildBody remains the same
+      floatingActionButton: FloatingCartButton(
+        itemCount: _cartItemCount, // Use the state variable
+        onPressed: () {
+          print('Floating Cart Button Tapped!');
+          // Placeholder: Navigate to cart screen or show cart summary
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Navegar a la pantalla del carrito (pendiente).')),
+          );
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Example location
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),
-        ),
-      );
-    }
-    if (_categorizedProducts.isEmpty) {
-      return Center(child: Text('No hay categorías de productos para mostrar.', style: Theme.of(context).textTheme.titleMedium,));
-    }
+   Widget _buildBody() { // Copied for completeness, no changes here
+    if (_isLoading) { return const Center(child: CircularProgressIndicator());}
+    if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
+    if (_categorizedProducts.isEmpty) { return Center(child: Text('No hay categorías de productos para mostrar.', style: Theme.of(context).textTheme.titleMedium,));}
     final categoryKeys = _categorizedProducts.keys.toList();
     return ListView.builder(
       itemCount: categoryKeys.length,
@@ -113,7 +109,6 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
         return CategorySection(
           categoryTitle: categoryName,
           products: productsInCategory,
-          // Both tap on card and "Add" button will trigger the same dialog
           onProductSelected: _handleProductInteraction,
           onProductAdded: _handleProductInteraction,
         );
