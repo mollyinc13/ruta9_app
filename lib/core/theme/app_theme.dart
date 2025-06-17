@@ -96,14 +96,14 @@ class AppTheme {
         labelStyle: GoogleFonts.lato(color: AppColors.textLight),
       ),
 
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData( // Corrected
         elevation: 2.0,
         color: AppColors.surfaceDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
 
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData( // Corrected
         backgroundColor: AppColors.backgroundDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
         titleTextStyle: GoogleFonts.lato(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textLight),
