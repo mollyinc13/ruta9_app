@@ -164,21 +164,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: 80),
                 _animatedButton(
-                  text: "INICIAR SESIÓN",
+                  text: "RUTA 9 CENTRAL",
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      MaterialPageRoute(builder: (_) => const menuruta9central()),
                     );
                   },
                 ),
                 SizedBox(height: 16),
                 _animatedButton(
-                  text: "MENÚ RUTERO",
+                  text: "R9 ZONA FRANCA",
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const GuestMenuScreen()),
+                      MaterialPageRoute(builder: (_) => const menur9zonafranca()),
                     );
                   },
                 ),
@@ -212,27 +212,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 }
 
 // Pantalla de Iniciar Sesión (placeholder)
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class menuruta9central extends StatelessWidget {
+  const menuruta9central({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Iniciar Sesión")),
-      body: const Center(child: Text("Pantalla de login")),
+      appBar: AppBar(title: const Text("Menu Ruta9 Central")),
+      body: const Center(child: Text("Local Central")),
     );
   }
 }
 
 // Pantalla de Menú Rutero (placeholder)
-class GuestMenuScreen extends StatelessWidget {
-  const GuestMenuScreen({super.key});
+class menur9zonafranca extends StatelessWidget {
+  const menur9zonafranca({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Menú Rutero")),
-      body: const Center(child: Text("Pantalla de menú rutero")),
+      appBar: AppBar(title: const Text("Menu R9 ZonaFranca")),
+      body: const Center(child: Text("Local zona franca")),
     );
   }
 }
