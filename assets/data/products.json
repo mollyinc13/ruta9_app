@@ -1,0 +1,134 @@
+[
+  {
+    "id": "BURG001",
+    "nombre": "Clásica",
+    "precio": 4500.0,
+    "descripcion": "Hamburguesa simple con lechuga y tomate",
+    "subcategoria": "Hamburguesas",
+    "contieneModificadores": false,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "burg001.jpg",
+    "agregados": []
+  },
+  {
+    "id": "BURG002",
+    "nombre": "Doble Queso",
+    "precio": 6500.0,
+    "descripcion": "Doble carne, doble queso cheddar",
+    "subcategoria": "Hamburguesas",
+    "contieneModificadores": false,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "burg002.jpg",
+    "agregados": []
+  },
+  {
+    "id": "BEB001",
+    "nombre": "Gaseosa Cola",
+    "precio": 1500.0,
+    "descripcion": "Lata 350ml",
+    "subcategoria": "Bebidas",
+    "contieneModificadores": false,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "beb001.jpg",
+    "agregados": []
+  },
+  {
+    "id": "ACOM001",
+    "nombre": "Papas Fritas",
+    "precio": 2000.0,
+    "descripcion": "Porción de papas fritas",
+    "subcategoria": "Acompañamientos",
+    "contieneModificadores": false,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "acom001.jpg",
+    "agregados": []
+  },
+  {
+    "id": "BURG003",
+    "nombre": "Vegetariana",
+    "precio": 5500.0,
+    "descripcion": "Hamburguesa de lentejas",
+    "subcategoria": "Hamburguesas",
+    "contieneModificadores": false,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "burg003.jpg",
+    "agregados": []
+  },
+  {
+    "id": "B14",
+    "nombre": "Burger Gouda Bacon Huevo",
+    "precio": 10600.0,
+    "descripcion": "(BURGER+GOUDA+C.CARAMELIZADA+TOCINO+HUEVO)",
+    "subcategoria": "BURGER",
+    "contieneModificadores": true,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "b14.jpg",
+    "agregados": [
+      {
+        "nombre": "Extra Queso",
+        "precio": 3000.0,
+        "imagen": "extra_queso.jpg"
+      }
+    ]
+  },
+  {
+    "id": "B17",
+    "nombre": "Burger Cheddar Bacon Huevo Palta",
+    "precio": 11800.0,
+    "descripcion": "(BURGER+CHEDDAR+TOCINO+HUEVO+PALTA)",
+    "subcategoria": "BURGER",
+    "contieneModificadores": true,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "b17.jpg",
+    "agregados": [
+      {
+        "nombre": "Extra Queso",
+        "precio": 3000.0,
+        "imagen": "extra_queso.jpg"
+      }
+    ]
+  },
+  {
+    "id": "B18",
+    "nombre": "Burger Gouda Azul Champiñon",
+    "precio": 11800.0,
+    "descripcion": "(BURGER+GOUDA+AZUL+C.CARAMELIZADA+CHAMPIÑON)",
+    "subcategoria": "BURGER",
+    "contieneModificadores": true,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "b18.jpg",
+    "agregados": [
+      {
+        "nombre": "Extra Queso",
+        "precio": 3000.0,
+        "imagen": "extra_queso.jpg"
+      }
+    ]
+  },
+  {
+    "id": "B19",
+    "nombre": "Burger Cheddar Huevo Bacon Aros BBQ",
+    "precio": 11800.0,
+    "descripcion": "(BURGER+CHEDDAR+HUEVO+TOCINO+AROS+PEPINILLOS+BBQ)",
+    "subcategoria": "BURGER",
+    "contieneModificadores": true,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "b19.jpg",
+    "agregados": [
+      {
+        "nombre": "Extra Queso",
+        "precio": 3000.0,
+        "imagen": "extra_queso.jpg"
+      }
+    ]
+  }
+]
