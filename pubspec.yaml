@@ -6,13 +6,13 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: ^3.8.1 # Ensure this is compatible with other dependencies if issues arise
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  video_player: ^2.7.0
+  video_player: ^2.7.0 # Make sure this version is current if not used, or remove
   url_launcher: ^6.2.6
   font_awesome_flutter: ^10.7.0
   csv: ^5.1.1
@@ -21,11 +21,21 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^5.0.0 # Consider updating if very old, but usually fine
 
 flutter:
   uses-material-design: true
   assets:
-    - assets/videos/welcome.mp4
-    - assets/images/logos/R9.png
-    - assets/data/ # Add this line to include the new data directory
+    - assets/data/ # For products.json
+    - assets/videos/ # Existing entry, keep if videos are used
+    - assets/images/logos/ # For logo assets like R9.png
+    - assets/images/products/ # Includes all subdirectories like burgers, sandwiches, snacks, bebidas, general
+    - assets/images/agregados/ # For agregado images like extra_queso.jpg
+    # Individual file listing (like assets/images/logos/R9.png from original file) is also fine
+    # but for directories, the trailing slash is important.
+    # The original file had:
+    # - assets/videos/welcome.mp4
+    # - assets/images/logos/R9.png
+    # I'm opting for directory inclusion for products and agregados for simplicity.
+    # If only R9.png is needed from logos, then 'assets/images/logos/R9.png' is better than 'assets/images/logos/'.
+    # For now, I'll keep 'assets/images/logos/' to include all logos if more exist.
