@@ -1,10 +1,9 @@
-// Relevant parts of menur9zonafranca.dart
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/category_section.dart';
 import '../views/product/product_detail_dialog.dart';
-import '../widgets/floating_cart_button.dart'; // Import the button
+import '../widgets/floating_cart_button.dart';
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
   const MenuR9ZonaFrancaScreen({super.key});
@@ -17,7 +16,7 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   Map<String, List<Product>> _categorizedProducts = {};
   bool _isLoading = true;
   String? _error;
-  int _cartItemCount = 0; // Placeholder for cart item count
+  int _cartItemCount = 0;
 
   @override
   void initState() {
@@ -26,30 +25,54 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   }
 
   Future<void> _loadProducts() async {
-    // ... (existing _loadProducts logic remains the same) ...
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
-      final products = await _productService.getProducts();
-      if (products.isEmpty && mounted) {
-        // Simplified error message assignment for brevity in this context
-        setState(() { _error = 'No hay productos disponibles en este momento. Intente más tarde.'; _isLoading = false; });
-        return;
-      }
-      if (mounted) {
+      final allProducts = await _productService.getProducts();
+      if (allProducts.isEmpty && mounted) {
+        print('MenuR9ZonaFrancaScreen: No products loaded from service. Ensure assets/data/products.json is populated and valid.');
         setState(() {
-          _categorizedProducts = _productService.groupProductsByCategory(products);
+          _error = 'No hay productos disponibles en este momento. Intente más tarde.';
           _isLoading = false;
         });
+        return;
+      }
+
+      // Filter products for Zona Franca
+      final zonaFrancaProducts = allProducts.where((p) => p.zonaFranca == true).toList();
+      print('MenuR9ZonaFrancaScreen: Total products loaded: ${allProducts.length}, Zona Franca products: ${zonaFrancaProducts.length}');
+
+
+      if (mounted) {
+        if (zonaFrancaProducts.isEmpty) {
+          print('MenuR9ZonaFrancaScreen: No products specifically marked for Zona Franca.');
+           setState(() {
+            // _error = 'No hay productos disponibles para Zona Franca en este momento.'; // Option 1: Specific error
+            _categorizedProducts = {}; // Option 2: Show empty categories view
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _categorizedProducts = _productService.groupProductsByCategory(zonaFrancaProducts);
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
+      print('MenuR9ZonaFrancaScreen: Error loading or categorizing products: $e');
       if (mounted) {
-        // Simplified error message assignment
-        setState(() { _error = 'Ocurrió un error al cargar los productos.'; _isLoading = false; });
+        setState(() {
+          _error = 'Ocurrió un error al cargar los productos.';
+          _isLoading = false;
+        });
       }
     }
   }
 
   void _handleProductInteraction(Product product) {
-    showDialog<Map<String, dynamic>>( // Specify type for showDialog
+    showDialog<Map<String, dynamic>>(
       context: context,
       builder: (BuildContext dialogContext) {
         return ProductDetailDialog(product: product);
@@ -64,8 +87,6 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
             backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
           ),
         );
-        // Placeholder: Increment cart count
-        // In a real app, this would come from a cart service/state management
         setState(() {
           _cartItemCount += (result['quantity'] as int?) ?? 1;
         });
@@ -81,25 +102,28 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
       appBar: AppBar(
         title: const Text('Ruta 9 - Zona Franca'),
       ),
-      body: _buildBody(), // _buildBody remains the same
+      body: _buildBody(),
       floatingActionButton: FloatingCartButton(
-        itemCount: _cartItemCount, // Use the state variable
+        itemCount: _cartItemCount,
         onPressed: () {
           print('Floating Cart Button Tapped!');
-          // Placeholder: Navigate to cart screen or show cart summary
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Navegar a la pantalla del carrito (pendiente).')),
           );
         },
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Example location
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-   Widget _buildBody() { // Copied for completeness, no changes here
+  Widget _buildBody() {
     if (_isLoading) { return const Center(child: CircularProgressIndicator());}
     if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
-    if (_categorizedProducts.isEmpty) { return Center(child: Text('No hay categorías de productos para mostrar.', style: Theme.of(context).textTheme.titleMedium,));}
+
+    // Updated to check _categorizedProducts specifically, which would be empty if zonaFrancaProducts was empty.
+    if (_categorizedProducts.isEmpty) {
+      return Center(child: Text('No hay productos disponibles para Zona Franca en este momento.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
+    }
     final categoryKeys = _categorizedProducts.keys.toList();
     return ListView.builder(
       itemCount: categoryKeys.length,
