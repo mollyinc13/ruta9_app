@@ -2,27 +2,26 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:csv/csv.dart';
 import '../models/product_model.dart';
+import '../models/agregado_model.dart'; // Import the Agregado model
 
-// Helper function to safely parse boolean values from CSV
+// Helper functions (_parseBool, _parseInt, _parseDouble) remain the same
 bool _parseBool(String? value) {
   if (value == null) return false;
   return ['true', 'verdadero', '1', 'si', 'yes'].contains(value.toLowerCase().trim());
 }
 
-// Helper function to safely parse int values from CSV
 int? _parseInt(String? value) {
   if (value == null || value.trim().isEmpty) return null;
   return int.tryParse(value.trim());
 }
 
-// Helper function to safely parse double values from CSV
 double? _parseDouble(String? value) {
   if (value == null || value.trim().isEmpty) return null;
-  // Replace comma with dot for decimal conversion if necessary
   return double.tryParse(value.trim().replaceAll(',', '.'));
 }
 
 class CsvParser {
+  // Modified parseProducts
   Future<List<Product>> parseProducts(String filePath) async {
     final products = <Product>[];
     try {
@@ -37,11 +36,13 @@ class CsvParser {
         return products;
       }
 
+      // New header: Subcategoría,Código,Nombre,Descripción,Precio,Zona Franca,Local Central,Imagen,Contiene modificadores
+      // Expected columns: 9
       for (var i = 1; i < fields.length; i++) {
         final row = fields[i];
 
-        if (row.length < 15) {
-          print('Warning: Skipping row in productos.csv due to insufficient columns: $row');
+        if (row.length < 9) { // Check against new column count
+          print('Warning: Skipping row in productos.csv due to insufficient columns (expected 9): $row');
           continue;
         }
 
@@ -55,27 +56,18 @@ class CsvParser {
         }
 
         final precioStr = getRaw(4)?.toString();
-        final costoStr = getRaw(5)?.toString();
-        final stockStr = getRaw(10)?.toString();
-        final margenStr = getRaw(11)?.toString();
-        final posicionStr = getRaw(14)?.toString();
 
         products.add(Product(
-          subcategoria: getString(0).isEmpty ? null : getString(0),
-          id: codigo,
-          nombre: getString(2),
-          descripcion: getString(3).isEmpty ? null : getString(3),
-          precio: _parseDouble(precioStr) ?? 0.0,
-          costo: _parseDouble(costoStr),
-          activo: _parseBool(getRaw(7)?.toString()),
-          favorito: _parseBool(getRaw(8)?.toString()),
-          controlStock: _parseBool(getRaw(9)?.toString()),
-          stock: _parseInt(stockStr),
-          margen: _parseDouble(margenStr),
-          contieneModificadores: _parseBool(getRaw(12)?.toString()),
-          permitirVenderSolo: _parseBool(getRaw(13)?.toString()),
-          posicion: _parseInt(posicionStr) ?? 0,
-          modificadores: [],
+          subcategoria: getString(0).isEmpty ? null : getString(0),       // Subcategoría
+          id: codigo,                                                      // Código (used as ID)
+          nombre: getString(2),                                            // Nombre
+          descripcion: getString(3).isEmpty ? null : getString(3),         // Descripción
+          precio: _parseDouble(precioStr) ?? 0.0,                          // Precio
+          zonaFranca: _parseBool(getRaw(5)?.toString()),                   // Zona Franca
+          localCentral: _parseBool(getRaw(6)?.toString()),                 // Local Central
+          imagen: getString(7).isEmpty ? null : getString(7),              // Imagen
+          contieneModificadores: _parseBool(getRaw(8)?.toString()),        // Contiene modificadores
+          agregados: [], // Initialize empty, will be populated by linkAgregadosToProducts
         ));
       }
     } catch (e) {
@@ -84,8 +76,9 @@ class CsvParser {
     return products;
   }
 
-  Future<List<Map<String, dynamic>>> parseModifiersCsv(String filePath) async {
-    final modifiersData = <Map<String, dynamic>>[];
+  // New: parseAgregados
+  Future<List<Map<String, dynamic>>> parseAgregados(String filePath) async {
+    final agregadosData = <Map<String, dynamic>>[];
     try {
       final input = File(filePath).openRead();
       final fields = await input
@@ -94,79 +87,79 @@ class CsvParser {
           .toList();
 
       if (fields.length < 2) {
-        print('Warning: modificadores.csv is empty or only contains a header.');
-        return modifiersData;
+        print('Warning: agregados.csv is empty or only contains a header.');
+        return agregadosData;
       }
 
+      // Header: ProductoCodigo,AgregadoNombre,AgregadoPrecio,AgregadoImagen
+      // Expected columns: 4
       for (var i = 1; i < fields.length; i++) {
           final row = fields[i];
-          if (row.length < 5) {
-              print('Warning: Skipping row in modificadores.csv due to insufficient columns: $row');
+          if (row.length < 4) { // Check against new column count
+              print('Warning: Skipping row in agregados.csv due to insufficient columns (expected 4): $row');
               continue;
           }
 
           String getString(int index) => (row[index] is String ? row[index] : row[index]?.toString() ?? '').trim();
           dynamic getRaw(int index) => row[index];
 
-          final productoRef = getString(0);
-          final grupoIdStr = getRaw(1)?.toString();
-          final titulo = getString(2);
-          final minCantidadStr = getRaw(3)?.toString();
-          final maxCantidadStr = getRaw(4)?.toString();
+          final productoCodigo = getString(0);
+          final agregadoNombre = getString(1);
+          final agregadoPrecioStr = getRaw(2)?.toString();
+          final agregadoImagen = getString(3).isEmpty ? null : getString(3);
 
-          if (productoRef.isEmpty || titulo.isEmpty) {
-              print('Warning: Skipping modifier row due to empty product reference or title: $row');
+          if (productoCodigo.isEmpty || agregadoNombre.isEmpty) {
+              print('Warning: Skipping agregado row due to empty ProductoCodigo or AgregadoNombre: $row');
               continue;
           }
 
-          modifiersData.add({
-            'productoRef': productoRef, // This is the product identifier (Código)
-            'grupoId': _parseInt(grupoIdStr) ?? 0,
-            'titulo': titulo,
-            'cantidadMinima': _parseInt(minCantidadStr) ?? 0,
-            'cantidadMaxima': _parseInt(maxCantidadStr) ?? 1,
+          agregadosData.add({
+            'productoCodigo': productoCodigo,
+            'nombre': agregadoNombre,
+            'precio': _parseDouble(agregadoPrecioStr) ?? 0.0,
+            'imagen': agregadoImagen,
           });
       }
     } catch (e) {
-      print('Error parsing modificadores.csv: $e');
+      print('Error parsing agregados.csv: $e');
     }
-    return modifiersData;
+    return agregadosData;
   }
 
-  // New method to link modifiers to products
-  List<Product> linkModifiersToProducts({
+  // New: linkAgregadosToProducts
+  List<Product> linkAgregadosToProducts({
     required List<Product> products,
-    required List<Map<String, dynamic>> modifiersRawData,
+    required List<Map<String, dynamic>> agregadosRawData,
   }) {
     final productMap = {for (var p in products) p.id: p};
 
-    for (final modifierData in modifiersRawData) {
-      final productRef = modifierData['productoRef'] as String?;
-      if (productRef == null || productRef.isEmpty) {
-        print('Warning: Modifier data found with no product reference. Data: $modifierData');
+    for (final agregadoData in agregadosRawData) {
+      final productoCodigo = agregadoData['productoCodigo'] as String?;
+      if (productoCodigo == null || productoCodigo.isEmpty) {
+        print('Warning: Agregado data found with no productoCodigo. Data: $agregadoData');
         continue;
       }
 
-      final product = productMap[productRef];
+      final product = productMap[productoCodigo];
 
       if (product == null) {
-        print('Warning: Product with Código "$productRef" not found for modifier: ${modifierData['titulo']}.');
+        print('Warning: Product with Código "$productoCodigo" not found for agregado: ${agregadoData['nombre']}.');
         continue;
       }
 
-      if (!product.contieneModificadores) {
-        print('Warning: Product "${product.nombre}" (Código: ${product.id}) is marked as not containing modifiers, but modifier data found: ${modifierData['titulo']}. Skipping this modifier.');
-        continue;
-      }
+      // No need to check product.contieneModificadores here for linking,
+      // that field is for the UI to know if it *should* display an 'agregados' section.
+      // The presence of linked agregados will be the source of truth.
 
-      final modifier = Modifier(
-        grupoId: modifierData['grupoId'] as int,
-        titulo: modifierData['titulo'] as String,
-        cantidadMinima: modifierData['cantidadMinima'] as int,
-        cantidadMaxima: modifierData['cantidadMaxima'] as int,
+      final agregado = Agregado(
+        nombre: agregadoData['nombre'] as String,
+        precio: agregadoData['precio'] as double,
+        imagen: agregadoData['imagen'] as String?,
       );
-      product.modificadores.add(modifier);
+      product.agregados.add(agregado);
     }
-    return products; // Return the list of products, now with linked modifiers
+    return products;
   }
+
+  // Old parseModifiersCsv and linkModifiersToProducts methods are removed.
 }
