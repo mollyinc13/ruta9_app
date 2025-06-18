@@ -17,29 +17,30 @@ class ProductCard extends StatelessWidget {
   // Basic function to generate an image path.
   // This will likely need refinement based on actual image naming conventions.
   String _getImagePath(Product product) {
-    // Attempt to create a path: assets/images/products/{subcategory}/{id_or_name}.png
-    // Example: assets/images/products/hamburguesas/burg001.png
-    // Normalize name to lowercase and replace spaces with underscores
-    final String normalizedName = product.id.toLowerCase().replaceAll(' ', '_');
-    final String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
+    String imageName = product.imagen ?? ""; // Use product.imagen if available
+    if (imageName.isEmpty) { // Fallback if product.imagen is null or empty
+      imageName = '${product.id.toLowerCase().replaceAll(' ', '_')}.jpg';
+    } else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) {
+      // If product.imagen is present but without extension, assume .jpg
+      imageName += '.jpg';
+    }
 
-    // Prioritize PNG, then JPG. This is a basic guess.
-    // A more robust system might involve image URLs in product data or a manifest.
-    // For now, we check a few common extensions.
-    // The ls() output showed assets/images/products/burgers/, /sandwiches/, /snacks/
-    // Let's try to match these.
-
+    // Determine base path by subcategory
+    String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
     String basePath = 'assets/images/products/';
-    if (categoryPath.contains('hamburguesa')) {
+
+    if (categoryPath.contains('burger')) { // Changed from 'hamburguesa' to 'burger' to match new CSV
         basePath += 'burgers/';
     } else if (categoryPath.contains('sandwich')) {
         basePath += 'sandwiches/';
     } else if (categoryPath.contains('snack') || categoryPath.contains('acompañamiento')) {
         basePath += 'snacks/';
+    } else if (categoryPath.contains('bebida')) { // For 'Bebidas'
+        basePath += 'bebidas/'; // Assuming a 'bebidas' folder might exist or be created
     } else {
-        basePath += 'general/'; // Fallback if category doesn't match known image folders
+        basePath += 'general/';
     }
-    return '$basePath$normalizedName.png'; // Default to .png
+    return '$basePath$imageName';
   }
 
   @override

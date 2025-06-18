@@ -62,15 +62,35 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     }
   }
 
-  String _getImagePath(Product product) {
-    final String normalizedName = product.id.toLowerCase().replaceAll(' ', '_');
-    final String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
+  String _getProductImagePath(Product product) { // Renamed for clarity
+    String imageName = product.imagen ?? "";
+    if (imageName.isEmpty) {
+      imageName = '${product.id.toLowerCase().replaceAll(' ', '_')}.jpg';
+    } else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) {
+      imageName += '.jpg';
+    }
+
+    String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
     String basePath = 'assets/images/products/';
-    if (categoryPath.contains('hamburguesa')) basePath += 'burgers/';
-    else if (categoryPath.contains('sandwich')) basePath += 'sandwiches/';
-    else if (categoryPath.contains('snack') || categoryPath.contains('acompañamiento')) basePath += 'snacks/';
-    else basePath += 'general/';
-    return '$basePath$normalizedName.png';
+
+    if (categoryPath.contains('burger')) { basePath += 'burgers/'; }
+    else if (categoryPath.contains('sandwich')) { basePath += 'sandwiches/'; }
+    else if (categoryPath.contains('snack') || categoryPath.contains('acompañamiento')) { basePath += 'snacks/'; }
+    else if (categoryPath.contains('bebida')) { basePath += 'bebidas/'; }
+    else { basePath += 'general/'; }
+    return '$basePath$imageName';
+  }
+
+  // New helper for agregado images
+  String _getAgregadoImagePath(Agregado agregado) {
+    String imageName = agregado.imagen ?? "";
+    if (imageName.isEmpty) { // Fallback if no image name
+      // Create a generic name, or return a path to a default placeholder
+      return 'assets/images/agregados/default_agregado.jpg'; // Assuming a default placeholder
+    } else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) {
+      imageName += '.jpg';
+    }
+    return 'assets/images/agregados/$imageName';
   }
 
   Widget _buildModifierGroupSection(Modifier modifierGroup) {
@@ -190,7 +210,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final String imagePath = _getImagePath(widget.product);
+    final String imagePath = _getProductImagePath(widget.product); // Updated call
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
