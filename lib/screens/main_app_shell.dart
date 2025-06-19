@@ -1,28 +1,16 @@
 // lib/screens/main_app_shell.dart
 import 'package:flutter/material.dart';
 import 'menur9zonafranca.dart';
-import '../core/theme/app_theme.dart'; // Import AppTheme for colors if needed directly
-import '../core/constants/colors.dart'; // Import AppColors
+// Remove direct import of AppTheme if not used directly for colors here
+// import '../core/theme/app_theme.dart';
+import '../core/constants/colors.dart'; // AppColors is used for BottomNavBar background
 
-// PlaceholderWidget definition (remains the same)
-class PlaceholderWidget extends StatelessWidget {
-  final String title;
-  const PlaceholderWidget({super.key, required this.title});
+// Import the new placeholder views
+import '../views/profile/profile_placeholder_view.dart';
+import '../views/cart/cart_placeholder_view.dart';
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.construction, size: 50, color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5)),
-          const SizedBox(height: 16),
-          Text('$title (Próximamente)', style: Theme.of(context).textTheme.headlineSmall),
-        ],
-      ),
-    );
-  }
-}
+// Remove the local PlaceholderWidget definition:
+// class PlaceholderWidget extends StatelessWidget { ... } // DELETE THIS
 
 class MainAppShell extends StatefulWidget {
   const MainAppShell({super.key});
@@ -34,10 +22,11 @@ class MainAppShell extends StatefulWidget {
 class _MainAppShellState extends State<MainAppShell> {
   int _currentIndex = 0;
 
+  // Updated _pages list to use the new placeholder views
   final List<Widget> _pages = [
-    const MenuR9ZonaFrancaScreen(),
-    const PlaceholderWidget(title: 'Perfil de Usuario'),
-    const PlaceholderWidget(title: 'Carrito de Compras'),
+    const MenuR9ZonaFrancaScreen(),         // Index 0: Home
+    const ProfilePlaceholderView(),         // Index 1: Profile
+    const CartPlaceholderView(),            // Index 2: Cart
   ];
 
   void _onTabTapped(int index) {
@@ -48,8 +37,7 @@ class _MainAppShellState extends State<MainAppShell> {
 
   @override
   Widget build(BuildContext context) {
-    // ThemeData and ColorScheme for styling
-    final ThemeData theme = Theme.of(context);
+    final ThemeData theme = Theme.of(context); // Keep for consistency if theme access needed
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
@@ -60,12 +48,12 @@ class _MainAppShellState extends State<MainAppShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        backgroundColor: AppColors.backgroundDark, // Use a specific dark color from AppColors or theme
-        selectedItemColor: colorScheme.primary, // e.g., AppColors.primaryRed
-        unselectedItemColor: AppColors.textMuted, // e.g., Colors.grey[400] or from AppColors
-        type: BottomNavigationBarType.fixed, // Ensures labels are always visible
-        selectedFontSize: 12.0, // Adjust font size if needed
-        unselectedFontSize: 12.0, // Adjust font size if needed
+        backgroundColor: AppColors.backgroundDark,
+        selectedItemColor: colorScheme.primary,
+        unselectedItemColor: AppColors.textMuted,
+        type: BottomNavigationBarType.fixed,
+        selectedFontSize: 12.0,
+        unselectedFontSize: 12.0,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
