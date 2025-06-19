@@ -1,3 +1,4 @@
+// lib/widgets/category_section.dart
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import 'product_card.dart';
@@ -7,6 +8,7 @@ class CategorySection extends StatelessWidget {
   final List<Product> products;
   final Function(Product product) onProductSelected;
   final Function(Product product) onProductAdded;
+  final IconData? icon; // New optional icon parameter
 
   const CategorySection({
     super.key,
@@ -14,40 +16,50 @@ class CategorySection extends StatelessWidget {
     required this.products,
     required this.onProductSelected,
     required this.onProductAdded,
+    this.icon, // Initialize new icon parameter
   });
 
   @override
   Widget build(BuildContext context) {
     if (products.isEmpty) {
-      return const SizedBox.shrink(); // Return an empty box if no products, to not take up title space
+      return const SizedBox.shrink();
     }
 
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final Color? iconColor = textTheme.headlineSmall?.color?.withOpacity(0.8);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
-          // Adjusted vertical padding for title
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 12.0),
-          child: Text(
-            categoryTitle,
-            style: textTheme.headlineSmall,
+          child: Row( // Use Row to place icon next to title
+            children: [
+              if (icon != null) // Conditionally display icon
+                Icon(icon, size: textTheme.headlineSmall?.fontSize, color: iconColor),
+              if (icon != null) // Conditionally display spacing
+                const SizedBox(width: 8.0),
+              Expanded( // Title takes remaining space
+                child: Text(
+                  categoryTitle,
+                  style: textTheme.headlineSmall,
+                  overflow: TextOverflow.ellipsis, // Handle long titles
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(
-          height: 320, // Keeping fixed height for now
+          height: 320,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            // Padding for the ListView itself (affects start of first item and end of last item)
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
               return Container(
-                width: 200, // Keeping fixed width for now
-                // Margin for spacing between cards
-                margin: const EdgeInsets.only(right: 12.0), // Increased right margin for spacing
+                width: 200,
+                margin: const EdgeInsets.only(right: 12.0),
                 child: ProductCard(
                   product: product,
                   onTap: () => onProductSelected(product),
@@ -57,7 +69,7 @@ class CategorySection extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 24), // Slightly increased spacing after the category section
+        const SizedBox(height: 24),
       ],
     );
   }

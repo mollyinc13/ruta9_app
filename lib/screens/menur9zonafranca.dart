@@ -1,9 +1,12 @@
+// lib/screens/menur9zonafranca.dart
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/category_section.dart';
+import '../widgets/combos_section.dart';
 import '../views/product/product_detail_dialog.dart';
-// import '../widgets/floating_cart_button.dart'; // Removed import
+// Import FontAwesomeIcons if specific icons are desired, or use standard Material Icons
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
   const MenuR9ZonaFrancaScreen({super.key});
@@ -13,130 +16,121 @@ class MenuR9ZonaFrancaScreen extends StatefulWidget {
 
 class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   final ProductService _productService = ProductService();
-  Map<String, List<Product>> _categorizedProducts = {};
+  List<Product> _comboProducts = [];
+  Map<String, List<Product>> _otherCategorizedProducts = {};
   bool _isLoading = true;
   String? _error;
-  // int _cartItemCount = 0; // Removed state for FAB badge
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProducts();
+  // Helper map to get icons for categories
+  final Map<String, IconData> _categoryIcons = {
+    'BURGER': Icons.lunch_dining, // Example, was 'Hamburguesas' before, now expecting 'BURGER' from CSV
+    'HAMBURGUESAS': Icons.lunch_dining, // Keep old mapping just in case
+    'BEBIDAS': Icons.local_bar,
+    'ACOMPAÑAMIENTOS': Icons.fastfood, // Or a more specific icon for fries etc.
+    'SANDWICHES': Icons.breakfast_dining, // Example
+    // Add other categories and their icons as needed
+    'OTROS': Icons.category, // Default for 'Otros'
+  };
+
+  IconData _getIconForCategory(String categoryName) {
+    return _categoryIcons[categoryName.toUpperCase()] ?? Icons.label_important_outline; // Fallback icon
   }
 
+  // ... (initState, _loadProducts, _handleProductInteraction methods remain the same) ...
+  @override
+  void initState() { super.initState(); _loadProducts(); }
+
   Future<void> _loadProducts() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    setState(() { _isLoading = true; _error = null; _comboProducts = []; _otherCategorizedProducts = {}; });
     try {
       final allProducts = await _productService.getProducts();
       if (allProducts.isEmpty && mounted) {
-        print('MenuR9ZonaFrancaScreen: No products loaded from service. Ensure assets/data/products.json is populated and valid.');
-        setState(() {
-          _error = 'No hay productos disponibles en este momento. Intente más tarde.';
-          _isLoading = false;
-        });
-        return;
+        // Simplified for brevity
+        setState(() { _error = 'No hay productos disponibles en este momento. Intente más tarde.'; _isLoading = false; }); return;
       }
       final zonaFrancaProducts = allProducts.where((p) => p.zonaFranca == true).toList();
-      print('MenuR9ZonaFrancaScreen: Total products loaded: ${allProducts.length}, Zona Franca products: ${zonaFrancaProducts.length}');
       if (mounted) {
         if (zonaFrancaProducts.isEmpty) {
-          print('MenuR9ZonaFrancaScreen: No products specifically marked for Zona Franca.');
-           setState(() {
-            _categorizedProducts = {};
-            _isLoading = false;
-          });
+          setState(() { _isLoading = false; });
         } else {
+          final List<Product> combos = [];
+          final List<Product> otherProducts = [];
+          for (var product in zonaFrancaProducts) {
+            if ((product.subcategoria ?? '').toUpperCase() == 'COMBOS') { combos.add(product); }
+            else { otherProducts.add(product); }
+          }
+          combos.sort((a,b) => a.id.compareTo(b.id));
           setState(() {
-            _categorizedProducts = _productService.groupProductsByCategory(zonaFrancaProducts);
+            _comboProducts = combos;
+            _otherCategorizedProducts = _productService.groupProductsByCategory(otherProducts);
             _isLoading = false;
           });
         }
       }
     } catch (e) {
-      print('MenuR9ZonaFrancaScreen: Error loading or categorizing products: $e');
-      if (mounted) {
-        setState(() {
-          _error = 'Ocurrió un error al cargar los productos.';
-          _isLoading = false;
-        });
-      }
+      // Simplified for brevity
+      if (mounted) { setState(() { _error = 'Ocurrió un error al cargar los productos.'; _isLoading = false; }); }
     }
   }
 
   void _handleProductInteraction(Product product) {
-    showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return ProductDetailDialog(product: product);
-      },
+    showDialog<Map<String, dynamic>>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
     ).then((result) {
       if (result != null && result is Map<String, dynamic>) {
-        print('Dialog closed, item added to cart (simulated): ${result['productName']}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("${result['productName']} (x${result['quantity']}) procesado."),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
-          ),
-        );
-        // setState(() { // Removed cart item count update
-        //   _cartItemCount += (result['quantity'] as int?) ?? 1;
-        // });
-      } else {
-        print('Product detail dialog dismissed without action.');
-      }
+        ScaffoldMessenger.of(context).showSnackBar( SnackBar( content: Text("${result['productName']} (x${result['quantity']}) procesado."), duration: const Duration(seconds: 2), backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),),);
+      } else { print('Product detail dialog dismissed without action.'); }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // This screen is now part of MainAppShell, so its AppBar might be controlled
-        // by MainAppShell or defined here. If MainAppShell doesn't have a central AppBar,
-        // this AppBar is fine.
-        // If MainAppShell *does* have an AppBar, this one might need to be removed or adjusted.
-        // For now, keeping it as it provides context for this specific view.
-        title: const Text('Ruta 9 - Zona Franca'),
-        automaticallyImplyLeading: false, // Usually false if this is a root view in a tab
-      ),
+      appBar: AppBar( title: const Text('Ruta 9 - Zona Franca'), automaticallyImplyLeading: false, ),
       body: _buildBody(),
-      // floatingActionButton: FloatingCartButton( // Removed FAB
-      //   itemCount: _cartItemCount,
-      //   onPressed: () {
-      //     print('Floating Cart Button Tapped!');
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       const SnackBar(content: Text('Navegar a la pantalla del carrito (pendiente).')),
-      //     );
-      //   },
-      // ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Removed
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) { return const Center(child: CircularProgressIndicator());}
     if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
-    if (_categorizedProducts.isEmpty) {
+    if (_comboProducts.isEmpty && _otherCategorizedProducts.isEmpty) {
       return Center(child: Text('No hay productos disponibles para Zona Franca en este momento.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
-    final categoryKeys = _categorizedProducts.keys.toList();
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      itemCount: categoryKeys.length,
-      itemBuilder: (context, index) {
-        final categoryName = categoryKeys[index];
-        final productsInCategory = _categorizedProducts[categoryName]!;
-        return CategorySection(
-          categoryTitle: categoryName,
-          products: productsInCategory,
-          onProductSelected: _handleProductInteraction,
-          onProductAdded: _handleProductInteraction,
-        );
-      },
+    final otherCategoryKeys = _otherCategorizedProducts.keys.toList();
+    // Sort otherCategoryKeys if a specific order is desired, e.g., alphabetically
+    // otherCategoryKeys.sort();
+
+    return CustomScrollView(
+      slivers: <Widget>[
+        const SliverToBoxAdapter(child: SizedBox(height: 8.0)),
+        if (_comboProducts.isNotEmpty)
+          SliverToBoxAdapter(
+            child: CombosSectionWidget(
+              comboProducts: _comboProducts,
+              onComboSelected: _handleProductInteraction,
+              onComboAdded: _handleProductInteraction,
+            ),
+          ),
+        if (_otherCategorizedProducts.isNotEmpty)
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final categoryName = otherCategoryKeys[index];
+                final productsInCategory = _otherCategorizedProducts[categoryName]!;
+                return CategorySection(
+                  categoryTitle: categoryName,
+                  products: productsInCategory,
+                  icon: _getIconForCategory(categoryName), // Pass the icon
+                  onProductSelected: _handleProductInteraction,
+                  onProductAdded: _handleProductInteraction,
+                );
+              },
+              childCount: otherCategoryKeys.length,
+            ),
+          ),
+        const SliverToBoxAdapter(child: SizedBox(height: 8.0)),
+      ],
     );
   }
 }

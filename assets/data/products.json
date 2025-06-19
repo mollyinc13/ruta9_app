@@ -130,5 +130,29 @@
         "imagen": "extra_queso.jpg"
       }
     ]
+  },
+  {
+    "id": "COMBO001",
+    "nombre": "Combo Clásica Individual",
+    "precio": 7500.0,
+    "descripcion": "Hamburguesa Clásica + Papas Fritas Pequeñas + Gaseosa Lata",
+    "subcategoria": "COMBOS",
+    "contieneModificadores": false,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "combo001.jpg",
+    "agregados": []
+  },
+  {
+    "id": "COMBO002",
+    "nombre": "Combo Doble Queso Full",
+    "precio": 9500.0,
+    "descripcion": "Hamburguesa Doble Queso + Papas Grandes + Gaseosa Grande",
+    "subcategoria": "COMBOS",
+    "contieneModificadores": false,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "combo002.jpg",
+    "agregados": []
   }
 ]
