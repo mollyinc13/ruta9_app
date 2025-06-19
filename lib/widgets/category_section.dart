@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
-import 'product_card.dart'; // Assuming ProductCard is in the same directory
+import 'product_card.dart';
 
 class CategorySection extends StatelessWidget {
   final String categoryTitle;
   final List<Product> products;
-  final Function(Product product) onProductSelected; // Callback when a product card is tapped
-  final Function(Product product) onProductAdded;   // Callback for "Add" button on product card
+  final Function(Product product) onProductSelected;
+  final Function(Product product) onProductAdded;
 
   const CategorySection({
     super.key,
@@ -19,9 +19,7 @@ class CategorySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (products.isEmpty) {
-      // Optionally, display something else if there are no products in this category
-      // return SizedBox.shrink();
-      // Or a message, but for now, if it's empty, it just won't show product cards.
+      return const SizedBox.shrink(); // Return an empty box if no products, to not take up title space
     }
 
     final TextTheme textTheme = Theme.of(context).textTheme;
@@ -30,26 +28,26 @@ class CategorySection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          // Adjusted vertical padding for title
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 12.0),
           child: Text(
             categoryTitle,
-            style: textTheme.headlineSmall, // Using headlineSmall from the theme
+            style: textTheme.headlineSmall,
           ),
         ),
         SizedBox(
-          height: 320, // Fixed height for the horizontal list. Adjust as needed.
-                       // This height needs to accommodate ProductCard's dimensions.
-                       // ProductCard has Expanded Image (flex 3) and Details (flex 2)
-                       // Consider the typical card width for aspect ratio.
+          height: 320, // Keeping fixed height for now
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12.0), // Padding for the first/last items
+            // Padding for the ListView itself (affects start of first item and end of last item)
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
               return Container(
-                width: 200, // Fixed width for each ProductCard in the list. Adjust as needed.
-                margin: const EdgeInsets.symmetric(horizontal: 4.0), // Spacing between cards
+                width: 200, // Keeping fixed width for now
+                // Margin for spacing between cards
+                margin: const EdgeInsets.only(right: 12.0), // Increased right margin for spacing
                 child: ProductCard(
                   product: product,
                   onTap: () => onProductSelected(product),
@@ -59,7 +57,7 @@ class CategorySection extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 16), // Spacing after the category section
+        const SizedBox(height: 24), // Slightly increased spacing after the category section
       ],
     );
   }

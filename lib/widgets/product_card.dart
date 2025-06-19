@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
-import '../core/constants/colors.dart'; // For direct color usage if needed outside theme
+// AppColors is not strictly needed if all colors come from theme, but kept for consistency if used by placeholder
+import '../core/constants/colors.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
-  final VoidCallback? onAddButtonPressed; // Callback for the "Add" button
-  final VoidCallback? onTap; // Callback for tapping the card itself
+  final VoidCallback? onAddButtonPressed;
+  final VoidCallback? onTap;
 
   const ProductCard({
     super.key,
@@ -14,32 +15,20 @@ class ProductCard extends StatelessWidget {
     this.onTap,
   });
 
-  // Basic function to generate an image path.
-  // This will likely need refinement based on actual image naming conventions.
   String _getImagePath(Product product) {
-    String imageName = product.imagen ?? ""; // Use product.imagen if available
-    if (imageName.isEmpty) { // Fallback if product.imagen is null or empty
+    String imageName = product.imagen ?? "";
+    if (imageName.isEmpty) {
       imageName = '${product.id.toLowerCase().replaceAll(' ', '_')}.jpg';
     } else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) {
-      // If product.imagen is present but without extension, assume .jpg
       imageName += '.jpg';
     }
-
-    // Determine base path by subcategory
     String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
     String basePath = 'assets/images/products/';
-
-    if (categoryPath.contains('burger')) { // Changed from 'hamburguesa' to 'burger' to match new CSV
-        basePath += 'burgers/';
-    } else if (categoryPath.contains('sandwich')) {
-        basePath += 'sandwiches/';
-    } else if (categoryPath.contains('snack') || categoryPath.contains('acompañamiento')) {
-        basePath += 'snacks/';
-    } else if (categoryPath.contains('bebida')) { // For 'Bebidas'
-        basePath += 'bebidas/'; // Assuming a 'bebidas' folder might exist or be created
-    } else {
-        basePath += 'general/';
-    }
+    if (categoryPath.contains('burger')) { basePath += 'burgers/'; }
+    else if (categoryPath.contains('sandwich')) { basePath += 'sandwiches/'; }
+    else if (categoryPath.contains('snack') || categoryPath.contains('acompañamiento')) { basePath += 'snacks/'; }
+    else if (categoryPath.contains('bebida')) { basePath += 'bebidas/'; }
+    else { basePath += 'general/'; }
     return '$basePath$imageName';
   }
 
@@ -47,49 +36,40 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    // CardTheme is applied by the global theme.
+    // final CardTheme cardTheme = Theme.of(context).cardTheme;
 
-    // Attempt to load image, fallback to placeholder
-    // Note: For asset images to be resolved correctly, they need to be listed in pubspec.yaml
-    // or the specific subdirectories like 'assets/images/products/burgers/' must be listed.
-    // The current pubspec.yaml lists the subdirectories.
     final String imagePath = _getImagePath(product);
 
-    ImageProvider productImage = AssetImage(imagePath);
-    // Using an Image.asset with errorBuilder to handle missing images
-
     return Card(
-      // CardTheme is applied globally, but can override here if needed
-      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      // elevation: 4,
-      // margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      // Using properties from AppTheme.cardTheme by default
+      // Consider specifying margin here if CategorySection doesn't provide enough spacing
+      // margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0), // Example if needed
+      clipBehavior: Clip.antiAlias, // Ensures content respects card's rounded corners
       child: InkWell(
-        onTap: onTap, // Allow tapping the whole card
-        borderRadius: BorderRadius.circular(12.0), // Match card shape
+        onTap: onTap,
+        // borderRadius: BorderRadius.circular(12.0), // Already handled by Card's shape if InkWell is direct child
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             // Product Image
             Expanded(
-              flex: 3, // Give more space to image
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12.0),
-                    topRight: Radius.circular(12.0),
-                  ),
-                  color: AppColors.surfaceDark.withOpacity(0.5), // Placeholder bg
+              flex: 3,
+              child: ClipRRect( // Ensures image itself is clipped to rounded corners if card is
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12.0), // Should match Card's shape radius
+                  topRight: Radius.circular(12.0),
                 ),
                 child: Image.asset(
                   imagePath,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    // Fallback placeholder if image fails to load
                     return Container(
                       alignment: Alignment.center,
-                      color: Colors.grey[700], // Darker placeholder background
+                      color: AppColors.surfaceDark.withOpacity(0.8), // Slightly darker placeholder
                       child: Icon(
-                        Icons.fastfood, // Placeholder icon
-                        color: Colors.grey[400],
+                        Icons.fastfood,
+                        color: AppColors.textMuted.withOpacity(0.6),
                         size: 40,
                       ),
                     );
@@ -99,46 +79,46 @@ class ProductCard extends StatelessWidget {
             ),
             // Product Details
             Expanded(
-              flex: 2, // Space for text and button
+              flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(12.0), // Slightly increased padding
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Push button to bottom
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    // Name
-                    Text(
-                      product.nombre,
-                      style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    Column( // Group name and price to prevent button from pushing price up if name is short
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.nombre,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            // color: textTheme.bodyLarge?.color, // Ensure good contrast from theme
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4), // Spacing between name and price
+                        Text(
+                          '\$${product.precio.toStringAsFixed(0)}',
+                          style: textTheme.titleMedium?.copyWith( // Increased size for price
+                            color: colorScheme.secondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    // Price
-                    Text(
-                      '\$${product.precio.toStringAsFixed(0)}', // Format price
-                      style: textTheme.titleSmall?.copyWith(
-                        color: colorScheme.secondary, // Use secondary color (yellow) for price
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    // Add Button
+                    const SizedBox(height: 8), // Spacing before button
                     SizedBox(
-                      width: double.infinity, // Make button take full width of padding
+                      width: double.infinity,
                       child: ElevatedButton(
                         onPressed: onAddButtonPressed,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ).copyWith(
-                           backgroundColor: MaterialStateProperty.all(AppColors.primaryRed),
-                           shape: MaterialStateProperty.all(
-                               RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
-                           )
+                          // Using style from AppTheme's elevatedButtonTheme by default
+                          // padding: const EdgeInsets.symmetric(vertical: 12.0), // Increased padding
+                          // textStyle: textTheme.labelLarge?.copyWith(fontSize: 14), // from theme
                         ),
-                        child: Text(
-                          'Agregar',
-                          style: textTheme.labelLarge?.copyWith(fontSize: 14),
-                        ),
+                        child: const Text('Agregar'), // Text style from theme's ElevatedButton
                       ),
                     ),
                   ],
