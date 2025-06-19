@@ -1,3 +1,4 @@
+// lib/views/product/product_detail_dialog.dart
 import 'package:flutter/material.dart';
 import '../../models/product_model.dart';
 import '../../models/agregado_model.dart';
@@ -82,7 +83,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     print("------------------------------------");
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('${cartItem['productName']} (x$_quantity) agregado al carrito.'),
-      backgroundColor: AppColors.success.withOpacity(0.9), // Consider using Theme.of(context).colorScheme.primary for theme consistency
+      backgroundColor: AppColors.success.withOpacity(0.9),
       duration: const Duration(seconds: 3),
     ));
     Navigator.of(context).pop(cartItem);
@@ -90,17 +91,17 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
 
   Widget _buildAgregadosList() {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final ThemeData theme = Theme.of(context); // For accessing theme properties easily
+    final ThemeData theme = Theme.of(context);
 
     if (!widget.product.contieneModificadores) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0), // Added horizontal padding
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
         child: Text("Este producto no tiene agregados.", style: textTheme.bodyMedium),
       );
     }
     if (widget.product.agregados.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0), // Added horizontal padding
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
         child: Text("Este producto puede tener agregados, pero no hay ninguno definido.", style: textTheme.bodyMedium),
       );
     }
@@ -109,22 +110,21 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          // Use symmetric padding for the title of the section
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 8.0),
           child: Text(
             "Agregados Disponibles:",
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600), // Slightly larger title
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
-        ListView.separated( // Using ListView.separated for better spacing and dividers
-          shrinkWrap: true, // Important for ListView inside SingleChildScrollView
-          physics: const NeverScrollableScrollPhysics(), // ListView itself shouldn't scroll here
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: widget.product.agregados.length,
           itemBuilder: (context, index) {
             final agregado = widget.product.agregados[index];
             bool isSelected = _selectedAgregados.contains(agregado);
             return CheckboxListTile(
-              title: Text(agregado.nombre, style: textTheme.titleMedium), // Slightly larger
+              title: Text(agregado.nombre, style: textTheme.titleMedium),
               subtitle: Text(
                 '+ \$${agregado.precio.toStringAsFixed(0)}',
                 style: textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
@@ -139,7 +139,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                   }
                 });
               },
-              secondary: ClipRRect( // Clip the agregado image
+              secondary: ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
                 child: SizedBox(
                   width: 50, height: 50,
@@ -148,14 +148,14 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                     fit: BoxFit.cover,
                     errorBuilder: (ctx, err, st) => Container(
                       alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.3),
-                      child: Icon(Icons.restaurant_menu, color: AppColors.textMuted.withOpacity(0.5), size: 24), // Changed icon
+                      child: Icon(Icons.restaurant_menu, color: AppColors.textMuted.withOpacity(0.5), size: 24),
                     ),
                   ),
                 ),
               ),
               controlAffinity: ListTileControlAffinity.leading,
               activeColor: theme.colorScheme.primary,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0), // Adjusted padding
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
             );
           },
           separatorBuilder: (context, index) => Divider(
@@ -175,17 +175,19 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final String imagePath = _getProductImagePath(widget.product);
     final double currentTotalPrice = _calculateTotalPrice();
-    // Get dialog shape from theme for consistent corner rounding
-    final DialogTheme dialogTheme = Theme.of(context).dialogTheme;
+
+    // Corrected Line:
+    final DialogThemeData dialogTheme = Theme.of(context).dialogTheme;
+
     final BorderRadius dialogBorderRadius = (dialogTheme.shape is RoundedRectangleBorder)
         ? (dialogTheme.shape as RoundedRectangleBorder).borderRadius as BorderRadius
-        : BorderRadius.circular(12.0); // Default if not RoundedRectangleBorder
+        : BorderRadius.circular(12.0);
 
     return Dialog(
-      shape: dialogTheme.shape, // Use theme's shape
-      backgroundColor: dialogTheme.backgroundColor, // Use theme's background
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0), // Slightly less horizontal
-      child: ClipRRect( // Clip the entire dialog content to its shape
+      shape: dialogTheme.shape,
+      backgroundColor: dialogTheme.backgroundColor,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      child: ClipRRect(
         borderRadius: dialogBorderRadius,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
@@ -193,47 +195,45 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              ClipRRect( // Apply rounding to top of the image
+              ClipRRect(
                 borderRadius: BorderRadius.only(
                   topLeft: dialogBorderRadius.topLeft,
                   topRight: dialogBorderRadius.topRight,
                 ),
                 child: SizedBox(
-                  height: 180, // Slightly taller image
+                  height: 180,
                   child: Image.asset(
                     imagePath, fit: BoxFit.cover,
                     errorBuilder: (ctx, err, st) => Container(
                       alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.5),
-                      child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60), // Larger icon
+                      child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60),
                     ),
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0), // Adjusted padding
+                padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.product.nombre, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)), // Bolder name
+                    Text(widget.product.nombre, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
                     Text('\$${currentTotalPrice.toStringAsFixed(0)}',
-                         style: textTheme.headlineMedium?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)), // Larger price
+                         style: textTheme.headlineMedium?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
               if (widget.product.descripcion != null && widget.product.descripcion!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Text(widget.product.descripcion!, style: textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis), // Increased maxLines
+                  child: Text(widget.product.descripcion!, style: textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis),
                 ),
 
               Expanded(
                 child: SingleChildScrollView(
-                  // Removed horizontal padding here, as _buildAgregadosList handles it internally for its content
                   child: _buildAgregadosList(),
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
                 child: Row(
