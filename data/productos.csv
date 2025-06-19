@@ -8,3 +8,5 @@ BURGER,B14,Burger Gouda Bacon Huevo,(BURGER+GOUDA+C.CARAMELIZADA+TOCINO+HUEVO),1
 BURGER,B17,Burger Cheddar Bacon Huevo Palta,(BURGER+CHEDDAR+TOCINO+HUEVO+PALTA),11800,TRUE,FALSE,b17.jpg,TRUE
 BURGER,B18,Burger Gouda Azul Champiñon,(BURGER+GOUDA+AZUL+C.CARAMELIZADA+CHAMPIÑON),11800,TRUE,FALSE,b18.jpg,TRUE
 BURGER,B19,Burger Cheddar Huevo Bacon Aros BBQ,(BURGER+CHEDDAR+HUEVO+TOCINO+AROS+PEPINILLOS+BBQ),11800,TRUE,FALSE,b19.jpg,TRUE
+COMBOS,COMBO001,Combo Clásica Individual,Hamburguesa Clásica + Papas Fritas Pequeñas + Gaseosa Lata,7500,TRUE,FALSE,combo001.jpg,FALSE
+COMBOS,COMBO002,Combo Doble Queso Full,Hamburguesa Doble Queso + Papas Grandes + Gaseosa Grande,9500,TRUE,FALSE,combo002.jpg,FALSE
