@@ -126,6 +126,8 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
     }
     final categoryKeys = _categorizedProducts.keys.toList();
     return ListView.builder(
+      // Added vertical padding to the ListView
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       itemCount: categoryKeys.length,
       itemBuilder: (context, index) {
         final categoryName = categoryKeys[index];
