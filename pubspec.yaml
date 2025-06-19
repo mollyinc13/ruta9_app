@@ -22,6 +22,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0 # Consider updating if very old, but usually fine
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -39,3 +40,9 @@ flutter:
     # I'm opting for directory inclusion for products and agregados for simplicity.
     # If only R9.png is needed from logos, then 'assets/images/logos/R9.png' is better than 'assets/images/logos/'.
     # For now, I'll keep 'assets/images/logos/' to include all logos if more exist.
+
+# New configuration block for flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logos/R9.png"
