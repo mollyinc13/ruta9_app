@@ -3,7 +3,7 @@ import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/category_section.dart';
 import '../views/product/product_detail_dialog.dart';
-import '../widgets/floating_cart_button.dart';
+// import '../widgets/floating_cart_button.dart'; // Removed import
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
   const MenuR9ZonaFrancaScreen({super.key});
@@ -16,7 +16,7 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   Map<String, List<Product>> _categorizedProducts = {};
   bool _isLoading = true;
   String? _error;
-  int _cartItemCount = 0;
+  // int _cartItemCount = 0; // Removed state for FAB badge
 
   @override
   void initState() {
@@ -39,18 +39,13 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
         });
         return;
       }
-
-      // Filter products for Zona Franca
       final zonaFrancaProducts = allProducts.where((p) => p.zonaFranca == true).toList();
       print('MenuR9ZonaFrancaScreen: Total products loaded: ${allProducts.length}, Zona Franca products: ${zonaFrancaProducts.length}');
-
-
       if (mounted) {
         if (zonaFrancaProducts.isEmpty) {
           print('MenuR9ZonaFrancaScreen: No products specifically marked for Zona Franca.');
            setState(() {
-            // _error = 'No hay productos disponibles para Zona Franca en este momento.'; // Option 1: Specific error
-            _categorizedProducts = {}; // Option 2: Show empty categories view
+            _categorizedProducts = {};
             _isLoading = false;
           });
         } else {
@@ -87,9 +82,9 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
             backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
           ),
         );
-        setState(() {
-          _cartItemCount += (result['quantity'] as int?) ?? 1;
-        });
+        // setState(() { // Removed cart item count update
+        //   _cartItemCount += (result['quantity'] as int?) ?? 1;
+        // });
       } else {
         print('Product detail dialog dismissed without action.');
       }
@@ -100,33 +95,36 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // This screen is now part of MainAppShell, so its AppBar might be controlled
+        // by MainAppShell or defined here. If MainAppShell doesn't have a central AppBar,
+        // this AppBar is fine.
+        // If MainAppShell *does* have an AppBar, this one might need to be removed or adjusted.
+        // For now, keeping it as it provides context for this specific view.
         title: const Text('Ruta 9 - Zona Franca'),
+        automaticallyImplyLeading: false, // Usually false if this is a root view in a tab
       ),
       body: _buildBody(),
-      floatingActionButton: FloatingCartButton(
-        itemCount: _cartItemCount,
-        onPressed: () {
-          print('Floating Cart Button Tapped!');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Navegar a la pantalla del carrito (pendiente).')),
-          );
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      // floatingActionButton: FloatingCartButton( // Removed FAB
+      //   itemCount: _cartItemCount,
+      //   onPressed: () {
+      //     print('Floating Cart Button Tapped!');
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(content: Text('Navegar a la pantalla del carrito (pendiente).')),
+      //     );
+      //   },
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Removed
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) { return const Center(child: CircularProgressIndicator());}
     if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
-
-    // Updated to check _categorizedProducts specifically, which would be empty if zonaFrancaProducts was empty.
     if (_categorizedProducts.isEmpty) {
       return Center(child: Text('No hay productos disponibles para Zona Franca en este momento.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
     final categoryKeys = _categorizedProducts.keys.toList();
     return ListView.builder(
-      // Added vertical padding to the ListView
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       itemCount: categoryKeys.length,
       itemBuilder: (context, index) {
