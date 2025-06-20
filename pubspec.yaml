@@ -17,6 +17,7 @@ dependencies:
   font_awesome_flutter: ^10.7.0
   csv: ^5.1.1
   google_fonts: ^6.2.1
+  provider: ^6.1.2 # Added line
 
 dev_dependencies:
   flutter_test:
