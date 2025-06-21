@@ -6,16 +6,40 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'main_app_shell.dart';
 
+// Helper class for Fade Page Route (can be in its own file or here for simplicity)
+class FadeRoute extends PageRouteBuilder {
+  final Widget page;
+  FadeRoute({required this.page})
+      : super(
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) =>
+              FadeTransition(
+                opacity: animation,
+                child: child,
+              ),
+          transitionDuration: const Duration(milliseconds: 400), // Adjust duration as needed
+        );
+}
+
+
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
-
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   late VideoPlayerController _controller;
-
   final String instagramUrl = 'https://www.instagram.com/ruta9.burgers/?hl=es';
   final String whatsappUrl = 'https://api.whatsapp.com/send/?phone=56957636076&text&type=phone_number&app_absent=0';
   final String mollyIncUrl = 'https://mollyinc.cl';
@@ -41,17 +65,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Future<void> _openUrl(String url) async {
     final uri = Uri.parse(url);
-    String errorMessage = 'No se pudo abrir el enlace.'; // Default error message
-
+    String errorMessage = 'No se pudo abrir el enlace.';
     try {
       if (await canLaunchUrl(uri)) {
         bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
         if (!launched) {
-          // This case might occur if launchUrl itself returns false (less common for https)
           errorMessage = 'El sistema no pudo iniciar el enlace.';
           debugPrint("launchUrl returned false for: $url");
         } else {
-          return; // Success, no error message needed
+          return;
         }
       } else {
         errorMessage = 'No se encontró una aplicación para abrir el enlace.';
@@ -64,11 +86,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       errorMessage = 'Error desconocido al abrir el enlace: $e';
       debugPrint("Unknown error while opening url: $url, Error: $e");
     }
-
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)),);
     }
   }
 
@@ -95,7 +114,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Widget _iconButton(IconData icon, String url) {
-     return GestureDetector(
+    return GestureDetector(
       onTap: () => _openUrl(url),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -123,7 +142,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           Align(
             alignment: Alignment.center,
             child: Column(
-              mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -133,12 +153,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 const SizedBox(height: 80),
                 _animatedButton(
                   text: "RUTA 9 CENTRAL",
-                  onPressed: () { Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainAppShell())); },
+                  onPressed: () {
+                    Navigator.pushReplacement(context, FadeRoute(page: const MainAppShell())); // MODIFIED
+                  },
                 ),
                 const SizedBox(height: 16),
                 _animatedButton(
                   text: "R9 ZONA FRANCA",
-                  onPressed: () { Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainAppShell())); },
+                  onPressed: () {
+                    Navigator.pushReplacement(context, FadeRoute(page: const MainAppShell())); // MODIFIED
+                  },
                 ),
               ],
             ),
