@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart'; // For groupBy
 import '../models/product_model.dart';
 import '../services/product_service.dart';
-import '../widgets/product_card.dart'; // Will use ProductCard directly
+import '../widgets/product_card.dart';
 import '../views/product/product_detail_dialog.dart';
-// CombosSectionWidget and CategorySection are no longer directly used by this screen's build method.
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
   const MenuR9ZonaFrancaScreen({super.key});
@@ -15,11 +14,9 @@ class MenuR9ZonaFrancaScreen extends StatefulWidget {
 
 class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with SingleTickerProviderStateMixin {
   final ProductService _productService = ProductService();
-
-  List<Product> _allZonaFrancaProducts = []; // All products for Zona Franca
-  List<String> _tabCategories = []; // Categories for TabBar, including "TODOS"
-  Map<String, List<Product>> _productsByCategory = {}; // Products grouped by actual subcategoria
-
+  List<Product> _allZonaFrancaProducts = [];
+  List<String> _tabCategories = [];
+  Map<String, List<Product>> _productsByCategory = {};
   TabController? _tabController;
   bool _isLoading = true;
   String? _error;
@@ -42,83 +39,47 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     try {
       final allProducts = await _productService.getProducts();
       if (!mounted) return;
-
       if (allProducts.isEmpty) {
         setState(() { _error = 'No hay productos disponibles.'; _isLoading = false; });
-        _setupTabController([]); // Setup with empty tabs even on initial empty load
+        _setupTabController([]);
         return;
       }
-
       _allZonaFrancaProducts = allProducts.where((p) => p.zonaFranca == true).toList();
       if (_allZonaFrancaProducts.isEmpty) {
-        setState(() { _isLoading = false; }); // Will show empty message
-        _setupTabController([]); // Setup with empty tabs
+        setState(() { _isLoading = false; });
+        _setupTabController([]);
         return;
       }
-
-      // Group products by their actual subcategoria for TabBarView content
       _productsByCategory = groupBy(_allZonaFrancaProducts, (Product p) => p.subcategoria ?? 'OTROS');
-
-      // Create tab list: "TODOS" + sorted unique subcategories
       List<String> uniqueCategories = _productsByCategory.keys.toList();
-      uniqueCategories.sort(); // Sort for consistent tab order
-
+      uniqueCategories.sort();
       _tabCategories = ["TODOS", ...uniqueCategories];
-
-      _setupTabController(uniqueCategories); // Pass actual categories for controller length
-
+      _setupTabController(uniqueCategories);
       setState(() { _isLoading = false; });
-
     } catch (e) {
       if (mounted) { setState(() { _error = 'Ocurrió un error al cargar los productos.'; _isLoading = false; });}
-      _setupTabController([]); // Setup with empty tabs on error too
+      _setupTabController([]);
     }
   }
 
-  void _setupTabController(List<String> categories) {
-    // Check if the widget is still mounted before interacting with TabController or setState
+  void _setupTabController(List<String> categoriesForLengthDetermination) {
     if (!mounted) return;
-
     _tabController?.removeListener(_handleTabSelection);
-    _tabController?.dispose(); // Dispose old controller if exists
-
+    _tabController?.dispose();
     _tabController = TabController(length: _tabCategories.length, vsync: this);
     _tabController!.addListener(_handleTabSelection);
   }
 
   void _handleTabSelection() {
-    // This method is called when the tab selection changes.
-    // If _tabController is not null and its index is changing,
-    // it means the user has swiped or tapped a new tab.
     if (_tabController != null && _tabController!.indexIsChanging) {
-      // TabBarView itself handles switching the content.
-      // If you needed to perform actions based on tab change (e.g., logging, fetching new data for the selected tab),
-      // you could do that here. For the current setup where all data is pre-loaded and filtered,
-      // just calling setState might be needed if other parts of the UI depend on the selected tab index
-      // outside of what TabBarView manages.
       if (mounted) {
-        setState(() {
-          // This setState call ensures that if any other part of your UI
-          // (not managed by TabBarView directly) depends on the selected tab index,
-          // it gets rebuilt. For example, if you had a dynamic title outside the AppBar's bottom.
-        });
+        setState(() {});
       }
     }
   }
 
-  // _getProductsForSelectedTab is not strictly needed if TabBarView is built by mapping _tabCategories directly.
-  // It was part of an earlier thought process. Keeping it commented out for now.
-  // List<Product> _getProductsForSelectedTab() {
-  //   if (_tabController == null || _tabCategories.isEmpty) return [];
-  //   final selectedCategory = _tabCategories[_tabController!.index];
-  //   if (selectedCategory == "TODOS") {
-  //     return _allZonaFrancaProducts;
-  //   }
-  //   return _productsByCategory[selectedCategory] ?? [];
-  // }
-
   void _handleProductInteraction(Product product) {
-    showDialog<dynamic>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
+    showDialog<dynamic>>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
     ).then((result) {
       if (result == true) {
         print('MenuR9ZonaFrancaScreen: ProductDetailDialog closed with success (item added).');
@@ -127,6 +88,7 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -155,13 +117,12 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     if (_tabController == null || _tabController!.length == 0) {
          return Center(child: Text('No hay productos disponibles para Zona Franca.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
-    // Specific check for only "TODOS" tab with no products
     if (_tabController!.length == 1 && _tabCategories.first == "TODOS" && _allZonaFrancaProducts.isEmpty) {
         return Center(child: Text('No hay productos disponibles para Zona Franca.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
 
-
     return TabBarView(
+      key: ValueKey(_tabCategories.join('-')), // Add a key to force rebuild if tabs change drastically
       controller: _tabController,
       children: _tabCategories.map((String category) {
         final productsToShow = (category == "TODOS")
@@ -169,8 +130,6 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
             : (_productsByCategory[category] ?? []);
 
         if (productsToShow.isEmpty && category == "TODOS" && _tabCategories.length > 1) {
-            // If "TODOS" is empty but other categories exist, it implies a filter error or no products at all.
-            // This message might be redundant if the main check above handles it.
              return Center(child: Text('No hay productos disponibles.', style: Theme.of(context).textTheme.titleMedium));
         } else if (productsToShow.isEmpty && category != "TODOS") {
              return Center(child: Text('No hay productos en la categoría ${category.toUpperCase()}.', style: Theme.of(context).textTheme.titleMedium));
@@ -188,11 +147,29 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
           itemCount: productsToShow.length,
           itemBuilder: (context, index) {
             final product = productsToShow[index];
-            return ProductCard(
-              product: product,
-              onTap: () => _handleProductInteraction(product),
-              onAddButtonPressed: () => _handleProductInteraction(product),
+
+            // --- Add Animation Here ---
+            return TweenAnimationBuilder<double>(
+              key: ValueKey(product.id), // Ensure animation reruns if product changes
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              duration: Duration(milliseconds: 300 + (index % 5 * 100)), // Staggered delay
+              curve: Curves.easeOut,
+              builder: (BuildContext context, double value, Widget? child) {
+                return Opacity(
+                  opacity: value, // Fade-in
+                  child: Transform.translate(
+                    offset: Offset(0, (1.0 - value) * 30), // Slide-up from 30px below
+                    child: child,
+                  ),
+                );
+              },
+              child: ProductCard( // The actual ProductCard is the child
+                product: product,
+                onTap: () => _handleProductInteraction(product),
+                onAddButtonPressed: () => _handleProductInteraction(product),
+              ),
             );
+            // --- End Animation ---
           },
         );
       }).toList(),
