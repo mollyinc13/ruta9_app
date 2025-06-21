@@ -1,13 +1,10 @@
 // lib/screens/welcome_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Required for PlatformException
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-// Import MainAppShell
 import 'main_app_shell.dart';
-// Remove direct imports to menu screens if they are no longer directly navigated to
-// import 'menuruta9central.dart';
-// import 'menur9zonafranca.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -44,15 +41,34 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Future<void> _openUrl(String url) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      debugPrint("No se pudo abrir la url: $url");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo abrir el enlace')),
-        );
+    String errorMessage = 'No se pudo abrir el enlace.'; // Default error message
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!launched) {
+          // This case might occur if launchUrl itself returns false (less common for https)
+          errorMessage = 'El sistema no pudo iniciar el enlace.';
+          debugPrint("launchUrl returned false for: $url");
+        } else {
+          return; // Success, no error message needed
+        }
+      } else {
+        errorMessage = 'No se encontró una aplicación para abrir el enlace.';
+        debugPrint("canLaunchUrl returned false for: $url");
       }
+    } on PlatformException catch (e) {
+      errorMessage = 'Error de plataforma al abrir el enlace: ${e.message}';
+      debugPrint("PlatformException while opening url: $url, Error: $e");
+    } catch (e) {
+      errorMessage = 'Error desconocido al abrir el enlace: $e';
+      debugPrint("Unknown error while opening url: $url, Error: $e");
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
@@ -116,20 +132,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: 80),
                 _animatedButton(
-                  text: "RUTA 9 CENTRAL", // This button will now also go to MainAppShell
-                  onPressed: () {
-                    // Navigate to MainAppShell. MainAppShell defaults to Zona Franca (Home tab).
-                    // Specific logic to show Central menu might be handled by passing args to MainAppShell
-                    // or if Central becomes its own tab later. For now, both go to MainAppShell.
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainAppShell()));
-                  },
+                  text: "RUTA 9 CENTRAL",
+                  onPressed: () { Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainAppShell())); },
                 ),
                 const SizedBox(height: 16),
                 _animatedButton(
                   text: "R9 ZONA FRANCA",
-                  onPressed: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainAppShell()));
-                  },
+                  onPressed: () { Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainAppShell())); },
                 ),
               ],
             ),

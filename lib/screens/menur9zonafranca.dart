@@ -1,12 +1,9 @@
-// lib/screens/menur9zonafranca.dart
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/category_section.dart';
 import '../widgets/combos_section.dart';
 import '../views/product/product_detail_dialog.dart';
-// Import FontAwesomeIcons if specific icons are desired, or use standard Material Icons
-// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
   const MenuR9ZonaFrancaScreen({super.key});
@@ -23,20 +20,18 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
 
   // Helper map to get icons for categories
   final Map<String, IconData> _categoryIcons = {
-    'BURGER': Icons.lunch_dining, // Example, was 'Hamburguesas' before, now expecting 'BURGER' from CSV
-    'HAMBURGUESAS': Icons.lunch_dining, // Keep old mapping just in case
+    'BURGER': Icons.lunch_dining,
+    'HAMBURGUESAS': Icons.lunch_dining,
     'BEBIDAS': Icons.local_bar,
-    'ACOMPAÑAMIENTOS': Icons.fastfood, // Or a more specific icon for fries etc.
-    'SANDWICHES': Icons.breakfast_dining, // Example
-    // Add other categories and their icons as needed
-    'OTROS': Icons.category, // Default for 'Otros'
+    'ACOMPAÑAMIENTOS': Icons.fastfood,
+    'SANDWICHES': Icons.breakfast_dining,
+    'OTROS': Icons.category,
   };
 
   IconData _getIconForCategory(String categoryName) {
-    return _categoryIcons[categoryName.toUpperCase()] ?? Icons.label_important_outline; // Fallback icon
+    return _categoryIcons[categoryName.toUpperCase()] ?? Icons.label_important_outline;
   }
 
-  // ... (initState, _loadProducts, _handleProductInteraction methods remain the same) ...
   @override
   void initState() { super.initState(); _loadProducts(); }
 
@@ -45,7 +40,6 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
     try {
       final allProducts = await _productService.getProducts();
       if (allProducts.isEmpty && mounted) {
-        // Simplified for brevity
         setState(() { _error = 'No hay productos disponibles en este momento. Intente más tarde.'; _isLoading = false; }); return;
       }
       final zonaFrancaProducts = allProducts.where((p) => p.zonaFranca == true).toList();
@@ -68,20 +62,32 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
         }
       }
     } catch (e) {
-      // Simplified for brevity
       if (mounted) { setState(() { _error = 'Ocurrió un error al cargar los productos.'; _isLoading = false; }); }
     }
   }
 
   void _handleProductInteraction(Product product) {
-    showDialog<Map<String, dynamic>>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
+    showDialog<dynamic>( // Changed to dynamic to accept bool or null
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return ProductDetailDialog(product: product);
+      },
     ).then((result) {
-      if (result != null && result is Map<String, dynamic>) {
-        ScaffoldMessenger.of(context).showSnackBar( SnackBar( content: Text("${result['productName']} (x${result['quantity']}) procesado."), duration: const Duration(seconds: 2), backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),),);
-      } else { print('Product detail dialog dismissed without action.'); }
+      // The dialog now pops `true` on successful add, or nothing (null) on close button/dismiss.
+      if (result == true) {
+        // This means item was "added to cart" successfully
+        // The SnackBar with item details is now shown from within ProductDetailDialog's _addToCart.
+        // Here, we might just want a generic confirmation or update cart badge (which is already provider-driven).
+        print('MenuR9ZonaFrancaScreen: ProductDetailDialog closed with success (item added).');
+        // Optionally, show a different, simpler SnackBar here or rely on CartProvider for UI updates.
+        // For example, to refresh cart count if it wasn't provider-driven for the badge:
+        // setState(() { /* _cartItemCount might be updated by listening to CartProvider elsewhere */ });
+      } else {
+        // Dialog was dismissed via close button, tap outside, or system back.
+        print('MenuR9ZonaFrancaScreen: ProductDetailDialog dismissed without adding to cart (result: $result).');
+      }
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +104,6 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
       return Center(child: Text('No hay productos disponibles para Zona Franca en este momento.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
     final otherCategoryKeys = _otherCategorizedProducts.keys.toList();
-    // Sort otherCategoryKeys if a specific order is desired, e.g., alphabetically
-    // otherCategoryKeys.sort();
 
     return CustomScrollView(
       slivers: <Widget>[
@@ -121,7 +125,7 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
                 return CategorySection(
                   categoryTitle: categoryName,
                   products: productsInCategory,
-                  icon: _getIconForCategory(categoryName), // Pass the icon
+                  icon: _getIconForCategory(categoryName),
                   onProductSelected: _handleProductInteraction,
                   onProductAdded: _handleProductInteraction,
                 );
