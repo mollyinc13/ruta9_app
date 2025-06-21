@@ -5,6 +5,7 @@ import '../../models/product_model.dart';
 import '../../models/agregado_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../core/constants/colors.dart';
+import '../../widgets/tap_scale_wrapper.dart'; // Add this import
 
 class ProductDetailDialog extends StatefulWidget {
   final Product product;
@@ -26,14 +27,13 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
 
   String _getProductImagePath(Product product) {
     String imageName = product.imagen ?? "";
-    if (imageName.isEmpty) { imageName = '${product.id.toLowerCase().replaceAll(' ', '_')}.jpg';}
-    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg';}
+    if (imageName.isEmpty) { imageName = '${product.id.toLowerCase().replaceAll(' ', '_')}.jpg'; }
+    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg'; }
     String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
     String basePath = 'assets/images/products/';
-
     if (categoryPath.contains('burger')) { basePath += 'burgers/'; }
     else if (categoryPath.contains('sandwich')) { basePath += 'sandwiches/'; }
-    else if (categoryPath.contains('combo')) { basePath += 'combos/'; } // Added for COMBOS
+    else if (categoryPath.contains('combo')) { basePath += 'combos/'; }
     else if (categoryPath.contains('snack') || categoryPath.contains('acompañamiento')) { basePath += 'snacks/'; }
     else if (categoryPath.contains('bebida')) { basePath += 'bebidas/'; }
     else { basePath += 'general/'; }
@@ -43,7 +43,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
   String _getAgregadoImagePath(Agregado agregado) {
     String imageName = agregado.imagen ?? "";
     if (imageName.isEmpty) { return 'assets/images/agregados/default_agregado.jpg'; }
-    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg';}
+    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg'; }
     return 'assets/images/agregados/$imageName';
   }
 
@@ -51,25 +51,20 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
   void _decrementQuantity() { if (_quantity > 1) { setState(() { _quantity--; }); } }
 
   double _calculateTotalPrice() {
-    double baseSinglePrice = widget.product.precio;
-    for (var agregado in _selectedAgregados) { baseSinglePrice += agregado.precio; }
-    return baseSinglePrice * _quantity;
+    double total = widget.product.precio;
+    for (var agregado in _selectedAgregados) { total += agregado.precio; }
+    return total * _quantity;
   }
 
   void _addToCart() {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    cartProvider.addItem(
-      product: widget.product,
-      quantity: _quantity,
-      selectedAgregados: _selectedAgregados.toList(),
-    );
+    cartProvider.addItem( product: widget.product, quantity: _quantity, selectedAgregados: _selectedAgregados.toList(), );
     final double finalPrice = _calculateTotalPrice();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('${widget.product.nombre} (x$_quantity) agregado al carrito. Total: \$${finalPrice.toStringAsFixed(0)}'),
       backgroundColor: AppColors.success.withOpacity(0.9),
-      duration: const Duration(seconds: 2),
-    ));
-    Navigator.of(context).pop(true); // Return true on successful add
+      duration: const Duration(seconds: 2), ));
+    Navigator.of(context).pop(true);
   }
 
   Widget _buildAgregadosList() {
@@ -99,7 +94,6 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
@@ -117,7 +111,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
       child: ClipRRect(
         borderRadius: dialogBorderRadius,
-        child: Stack( // Use Stack to overlay a close button
+        child: Stack(
           children: [
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
@@ -125,8 +119,22 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  ClipRRect( borderRadius: BorderRadius.only( topLeft: dialogBorderRadius.topLeft, topRight: dialogBorderRadius.topRight,),
-                    child: SizedBox( height: 180, child: Image.asset( imagePath, fit: BoxFit.cover, errorBuilder: (ctx, err, st) => Container( alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.5), child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60), ),),),),
+                  Hero( // MODIFIED: Added Hero widget
+                    tag: 'hero_product_image_${widget.product.id}', // Must match ProductCard tag
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: dialogBorderRadius.topLeft,
+                        topRight: dialogBorderRadius.topRight,
+                      ),
+                      child: SizedBox(
+                        height: 180,
+                        child: Image.asset(
+                          imagePath, fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, st) => Container( alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.5), child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60), ),
+                        ),
+                      ),
+                    ),
+                  ),
                   Padding( padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
                     child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ Text(widget.product.nombre, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)), const SizedBox(height: 6), Text('\$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.headlineMedium?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)), ],),),
                   if (widget.product.descripcion != null && widget.product.descripcion!.isNotEmpty)
@@ -134,24 +142,34 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                   Expanded( child: SingleChildScrollView( child: _buildAgregadosList(),),),
                   Padding( padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
                     child: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [ Text("Cantidad:", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)), Container( decoration: BoxDecoration(border: Border.all(color: AppColors.textMuted.withOpacity(0.5), width: 1), borderRadius: BorderRadius.circular(8),), child: Row(children: [ IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _decrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), Padding(padding: const EdgeInsets.symmetric(horizontal: 12.0), child: Text('$_quantity', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),),), IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _incrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), ],),),],),),
-                  Padding( padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0), child: ElevatedButton( style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)), onPressed: _addToCart, child: Text('Agregar \$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.labelLarge),),),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
+                    child: TapScaleWrapper(
+                      onPressed: _addToCart, // Actual action handled by wrapper
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                        onPressed: () {}, // Dummy to maintain enabled appearance; actual tap handled by TapScaleWrapper
+                        child: Text('Agregar \$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.labelLarge),
+                      ),
+                    ),
+                  ),
                 ],
               )
             ),
-            Positioned( // Close button
+            Positioned(
               top: 8,
               right: 8,
-              child: Material( // Material for InkWell splash
+              child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onTap: () {
-                    Navigator.of(context).pop(); // Pop without a result (or with false)
+                    Navigator.of(context).pop();
                   },
                   child: Container(
                     padding: const EdgeInsets.all(4),
                      decoration: BoxDecoration(
-                       color: AppColors.backgroundDark.withOpacity(0.5), // Semi-transparent background
+                       color: AppColors.backgroundDark.withOpacity(0.5),
                        shape: BoxShape.circle,
                      ),
                     child: Icon(

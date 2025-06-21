@@ -56,25 +56,28 @@ class ProductCard extends StatelessWidget {
             // Product Image
             Expanded(
               flex: 3,
-              child: ClipRRect( // Ensures image itself is clipped to rounded corners if card is
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12.0), // Should match Card's shape radius
-                  topRight: Radius.circular(12.0),
-                ),
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      alignment: Alignment.center,
-                      color: AppColors.surfaceDark.withOpacity(0.8), // Slightly darker placeholder
-                      child: Icon(
-                        Icons.fastfood,
-                        color: AppColors.textMuted.withOpacity(0.6),
-                        size: 40,
-                      ),
-                    );
-                  },
+              child: Hero( // MODIFIED: Added Hero widget
+                tag: 'hero_product_image_${product.id}', // Unique tag per product
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12.0),
+                    topRight: Radius.circular(12.0),
+                  ),
+                  child: Image.asset(
+                    imagePath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        alignment: Alignment.center,
+                        color: AppColors.surfaceDark.withOpacity(0.8),
+                        child: Icon(
+                          Icons.fastfood,
+                          color: AppColors.textMuted.withOpacity(0.6),
+                          size: 40,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -82,44 +85,38 @@ class ProductCard extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(12.0), // Slightly increased padding
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Column( // Group name and price to prevent button from pushing price up if name is short
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           product.nombre,
-                          style: textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            // color: textTheme.bodyLarge?.color, // Ensure good contrast from theme
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4), // Spacing between name and price
+                        const SizedBox(height: 4),
                         Text(
                           '\$${product.precio.toStringAsFixed(0)}',
-                          style: textTheme.titleMedium?.copyWith( // Increased size for price
-                            color: colorScheme.secondary,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.secondary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8), // Spacing before button
+                    const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: onAddButtonPressed,
-                        style: ElevatedButton.styleFrom(
-                          // Using style from AppTheme's elevatedButtonTheme by default
-                          // padding: const EdgeInsets.symmetric(vertical: 12.0), // Increased padding
-                          // textStyle: textTheme.labelLarge?.copyWith(fontSize: 14), // from theme
-                        ),
-                        child: const Text('Agregar'), // Text style from theme's ElevatedButton
+                        child: const Text('Agregar'),
                       ),
                     ),
                   ],

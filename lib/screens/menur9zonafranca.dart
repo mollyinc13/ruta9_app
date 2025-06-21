@@ -1,9 +1,11 @@
 // lib/screens/menur9zonafranca.dart
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart'; // For groupBy
+import 'package:collection/collection.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/product_card.dart';
+import '../widgets/product_card_skeleton.dart'; // Import skeleton
+import '../widgets/shimmer_loading.dart';     // Import shimmer
 import '../views/product/product_detail_dialog.dart';
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
@@ -62,7 +64,7 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     }
   }
 
-  void _setupTabController(List<String> categoriesForLengthDetermination) {
+  void _setupTabController(List<String> categories) {
     if (!mounted) return;
     _tabController?.removeListener(_handleTabSelection);
     _tabController?.dispose();
@@ -94,7 +96,6 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     bool showTabBar = _tabController != null &&
                       _tabController!.length > 0 &&
                       !(_tabController!.length == 1 && _tabCategories.first == "TODOS" && _allZonaFrancaProducts.isEmpty);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ruta 9 - Zona Franca'),
@@ -113,9 +114,33 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     );
   }
 
+  Widget _buildLoadingSkeletonGrid() {
+    int skeletonItemCount = 6;
+    return GridView.builder(
+      padding: const EdgeInsets.all(16.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12.0,
+        mainAxisSpacing: 12.0,
+        childAspectRatio: 200 / 320,
+      ),
+      itemCount: skeletonItemCount,
+      itemBuilder: (context, index) {
+        return const ShimmerLoading(
+          isLoading: true,
+          child: ProductCardSkeleton(),
+        );
+      },
+    );
+  }
+
   Widget _buildBody() {
-    if (_isLoading) { return const Center(child: CircularProgressIndicator()); }
-    if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
+    if (_isLoading) {
+      return _buildLoadingSkeletonGrid();
+    }
+    if (_error != null) {
+      return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),);
+    }
     if (_allZonaFrancaProducts.isEmpty) {
          return Center(child: Text('No hay productos disponibles para Zona Franca.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
@@ -150,13 +175,13 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
             return TweenAnimationBuilder<double>(
               key: ValueKey(product.id),
               tween: Tween<double>(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 500), // MODIFIED
-              curve: Curves.easeOutCubic, // MODIFIED
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOutCubic,
               builder: (BuildContext context, double value, Widget? child) {
                 return Opacity(
                   opacity: value,
                   child: Transform.translate(
-                    offset: Offset(0, (1.0 - value) * 20), // MODIFIED (30 to 20)
+                    offset: Offset(0, (1.0 - value) * 20),
                     child: child,
                   ),
                 );
