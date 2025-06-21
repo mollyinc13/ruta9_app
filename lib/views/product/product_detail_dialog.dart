@@ -30,8 +30,10 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg';}
     String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
     String basePath = 'assets/images/products/';
+
     if (categoryPath.contains('burger')) { basePath += 'burgers/'; }
     else if (categoryPath.contains('sandwich')) { basePath += 'sandwiches/'; }
+    else if (categoryPath.contains('combo')) { basePath += 'combos/'; } // Added for COMBOS
     else if (categoryPath.contains('snack') || categoryPath.contains('acompañamiento')) { basePath += 'snacks/'; }
     else if (categoryPath.contains('bebida')) { basePath += 'bebidas/'; }
     else { basePath += 'general/'; }

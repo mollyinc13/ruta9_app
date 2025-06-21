@@ -1,3 +1,4 @@
+// lib/screens/menur9zonafranca.dart
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
@@ -18,17 +19,18 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   bool _isLoading = true;
   String? _error;
 
-  // Helper map to get icons for categories
+  // Updated categoryIcons map
   final Map<String, IconData> _categoryIcons = {
     'BURGER': Icons.lunch_dining,
-    'HAMBURGUESAS': Icons.lunch_dining,
     'BEBIDAS': Icons.local_bar,
     'ACOMPAÑAMIENTOS': Icons.fastfood,
-    'SANDWICHES': Icons.breakfast_dining,
+    'SANDWICH': Icons.breakfast_dining, // Standardized from SANDWICHES
+    'COMBOS': Icons.takeout_dining,    // Added for COMBOS
     'OTROS': Icons.category,
   };
 
   IconData _getIconForCategory(String categoryName) {
+    // Lookup uses toUpperCase, so keys in map should be uppercase
     return _categoryIcons[categoryName.toUpperCase()] ?? Icons.label_important_outline;
   }
 
@@ -67,23 +69,15 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
   }
 
   void _handleProductInteraction(Product product) {
-    showDialog<dynamic>( // Changed to dynamic to accept bool or null
+    showDialog<dynamic>(
       context: context,
       builder: (BuildContext dialogContext) {
         return ProductDetailDialog(product: product);
       },
     ).then((result) {
-      // The dialog now pops `true` on successful add, or nothing (null) on close button/dismiss.
       if (result == true) {
-        // This means item was "added to cart" successfully
-        // The SnackBar with item details is now shown from within ProductDetailDialog's _addToCart.
-        // Here, we might just want a generic confirmation or update cart badge (which is already provider-driven).
         print('MenuR9ZonaFrancaScreen: ProductDetailDialog closed with success (item added).');
-        // Optionally, show a different, simpler SnackBar here or rely on CartProvider for UI updates.
-        // For example, to refresh cart count if it wasn't provider-driven for the badge:
-        // setState(() { /* _cartItemCount might be updated by listening to CartProvider elsewhere */ });
       } else {
-        // Dialog was dismissed via close button, tap outside, or system back.
         print('MenuR9ZonaFrancaScreen: ProductDetailDialog dismissed without adding to cart (result: $result).');
       }
     });
@@ -104,6 +98,8 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> {
       return Center(child: Text('No hay productos disponibles para Zona Franca en este momento.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
     final otherCategoryKeys = _otherCategorizedProducts.keys.toList();
+    // Sort otherCategoryKeys if a specific order is desired, e.g., alphabetically
+    // otherCategoryKeys.sort(); // Example: sort keys alphabetically
 
     return CustomScrollView(
       slivers: <Widget>[
