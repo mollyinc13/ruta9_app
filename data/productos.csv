@@ -10,3 +10,6 @@ BURGER,B18,Burger Gouda Azul Champiñon,(BURGER+GOUDA+AZUL+C.CARAMELIZADA+CHAMPI
 BURGER,B19,Burger Cheddar Huevo Bacon Aros BBQ,(BURGER+CHEDDAR+HUEVO+TOCINO+AROS+PEPINILLOS+BBQ),11800,TRUE,FALSE,b19.jpg,TRUE
 COMBOS,COMBO001,Combo Clásica Individual,Hamburguesa Clásica + Papas Fritas Pequeñas + Gaseosa Lata,7500,TRUE,FALSE,combo001.jpg,FALSE
 COMBOS,COMBO002,Combo Doble Queso Full,Hamburguesa Doble Queso + Papas Grandes + Gaseosa Grande,9500,TRUE,FALSE,combo002.jpg,FALSE
+SANDWICH,SAND001,Sandwich de Pollo Clásico,"Pechuga de pollo grillada, lechuga, tomate, mayonesa en pan frica.",8500,TRUE,FALSE,sand001.jpg,FALSE
+SANDWICH,SAND002,Sandwich Mechada Italiana,"Carne mechada, tomate, palta, mayonesa en pan amasado.",9200,TRUE,FALSE,sand002.jpg,FALSE
+SANDWICH,SAND003,Sandwich Vegetariano Deluxe,"Hamburguesa de falafel, hummus, lechuga, tomate, pepino, salsa tahini en pan pita.",8900,TRUE,FALSE,sand003.jpg,FALSE
