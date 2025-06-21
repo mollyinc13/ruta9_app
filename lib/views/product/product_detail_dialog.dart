@@ -5,7 +5,7 @@ import '../../models/product_model.dart';
 import '../../models/agregado_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../core/constants/colors.dart';
-import '../../widgets/tap_scale_wrapper.dart'; // Add this import
+import '../../widgets/tap_scale_wrapper.dart';
 
 class ProductDetailDialog extends StatefulWidget {
   final Product product;
@@ -27,8 +27,8 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
 
   String _getProductImagePath(Product product) {
     String imageName = product.imagen ?? "";
-    if (imageName.isEmpty) { imageName = '${product.id.toLowerCase().replaceAll(' ', '_')}.jpg'; }
-    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg'; }
+    if (imageName.isEmpty) { imageName = '${product.id.toLowerCase().replaceAll(' ', '_')}.jpg';}
+    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg';}
     String categoryPath = product.subcategoria?.toLowerCase().replaceAll(' ', '_') ?? 'general';
     String basePath = 'assets/images/products/';
     if (categoryPath.contains('burger')) { basePath += 'burgers/'; }
@@ -43,7 +43,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
   String _getAgregadoImagePath(Agregado agregado) {
     String imageName = agregado.imagen ?? "";
     if (imageName.isEmpty) { return 'assets/images/agregados/default_agregado.jpg'; }
-    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg'; }
+    else if (!imageName.toLowerCase().endsWith('.jpg') && !imageName.toLowerCase().endsWith('.png')) { imageName += '.jpg';}
     return 'assets/images/agregados/$imageName';
   }
 
@@ -56,15 +56,22 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     return total * _quantity;
   }
 
+  // MODIFIED _addToCart method
   void _addToCart() {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    cartProvider.addItem( product: widget.product, quantity: _quantity, selectedAgregados: _selectedAgregados.toList(), );
-    final double finalPrice = _calculateTotalPrice();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('${widget.product.nombre} (x$_quantity) agregado al carrito. Total: \$${finalPrice.toStringAsFixed(0)}'),
-      backgroundColor: AppColors.success.withOpacity(0.9),
-      duration: const Duration(seconds: 2), ));
-    Navigator.of(context).pop(true);
+    final double finalPrice = _calculateTotalPrice(); // Calculate price to pass back
+
+    cartProvider.addItem(
+      product: widget.product,
+      quantity: _quantity,
+      selectedAgregados: _selectedAgregados.toList(),
+    );
+
+    Navigator.of(context).pop({
+      'productName': widget.product.nombre,
+      'quantity': _quantity,
+      'totalPrice': finalPrice
+    });
   }
 
   Widget _buildAgregadosList() {
@@ -101,9 +108,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     final String imagePath = _getProductImagePath(widget.product);
     final double currentTotalPrice = _calculateTotalPrice();
     final DialogThemeData dialogTheme = Theme.of(context).dialogTheme;
-    final BorderRadius dialogBorderRadius = (dialogTheme.shape is RoundedRectangleBorder)
-        ? (dialogTheme.shape as RoundedRectangleBorder).borderRadius as BorderRadius
-        : BorderRadius.circular(12.0);
+    final BorderRadius dialogBorderRadius = (dialogTheme.shape is RoundedRectangleBorder) ? (dialogTheme.shape as RoundedRectangleBorder).borderRadius as BorderRadius : BorderRadius.circular(12.0);
 
     return Dialog(
       shape: dialogTheme.shape,
@@ -119,36 +124,65 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Hero( // MODIFIED: Added Hero widget
-                    tag: 'hero_product_image_${widget.product.id}', // Must match ProductCard tag
+                  Hero(
+                    tag: 'hero_product_image_${widget.product.id}',
                     child: ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: dialogBorderRadius.topLeft,
-                        topRight: dialogBorderRadius.topRight,
-                      ),
+                      borderRadius: BorderRadius.only( topLeft: dialogBorderRadius.topLeft, topRight: dialogBorderRadius.topRight,),
                       child: SizedBox(
                         height: 180,
                         child: Image.asset(
-                          imagePath, fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, st) => Container( alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.5), child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60), ),
+                          imagePath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, st) => Container(
+                            alignment: Alignment.center,
+                            color: AppColors.surfaceDark.withOpacity(0.5),
+                            child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  Padding( padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-                    child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ Text(widget.product.nombre, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)), const SizedBox(height: 6), Text('\$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.headlineMedium?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)), ],),),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.product.nombre, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
+                        Text('\$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.headlineMedium?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
                   if (widget.product.descripcion != null && widget.product.descripcion!.isNotEmpty)
-                    Padding( padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), child: Text(widget.product.descripcion!, style: textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis), ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Text(widget.product.descripcion!, style: textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis),
+                    ),
                   Expanded( child: SingleChildScrollView( child: _buildAgregadosList(),),),
-                  Padding( padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                    child: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [ Text("Cantidad:", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)), Container( decoration: BoxDecoration(border: Border.all(color: AppColors.textMuted.withOpacity(0.5), width: 1), borderRadius: BorderRadius.circular(8),), child: Row(children: [ IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _decrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), Padding(padding: const EdgeInsets.symmetric(horizontal: 12.0), child: Text('$_quantity', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),),), IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _incrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), ],),),],),),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Cantidad:", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Container(
+                          decoration: BoxDecoration(border: Border.all(color: AppColors.textMuted.withOpacity(0.5), width: 1), borderRadius: BorderRadius.circular(8),),
+                          child: Row(children: [
+                            IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _decrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,),
+                            Padding(padding: const EdgeInsets.symmetric(horizontal: 12.0), child: Text('$_quantity', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),),),
+                            IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _incrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,),
+                          ],),
+                        ),
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
                     child: TapScaleWrapper(
-                      onPressed: _addToCart, // Actual action handled by wrapper
+                      onPressed: _addToCart,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
-                        onPressed: () {}, // Dummy to maintain enabled appearance; actual tap handled by TapScaleWrapper
+                        onPressed: () {},
                         child: Text('Agregar \$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.labelLarge),
                       ),
                     ),
@@ -163,15 +197,13 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
+                  onTap: () { Navigator.of(context).pop(); },
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                     decoration: BoxDecoration(
-                       color: AppColors.backgroundDark.withOpacity(0.5),
-                       shape: BoxShape.circle,
-                     ),
+                    decoration: BoxDecoration(
+                      color: AppColors.backgroundDark.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
                     child: Icon(
                       Icons.close,
                       color: AppColors.textLight.withOpacity(0.8),

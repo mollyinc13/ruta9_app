@@ -1,12 +1,13 @@
 // lib/screens/menur9zonafranca.dart
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
+import 'package:collection/collection.dart'; // For groupBy
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/product_card.dart';
-import '../widgets/product_card_skeleton.dart'; // Import skeleton
-import '../widgets/shimmer_loading.dart';     // Import shimmer
 import '../views/product/product_detail_dialog.dart';
+// AppColors might be needed if SnackBar uses it explicitly, else Theme colors are fine
+import '../core/constants/colors.dart';
+
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {
   const MenuR9ZonaFrancaScreen({super.key});
@@ -22,6 +23,19 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
   TabController? _tabController;
   bool _isLoading = true;
   String? _error;
+
+  final Map<String, IconData> _categoryIcons = {
+    'BURGER': Icons.lunch_dining,
+    'BEBIDAS': Icons.local_bar,
+    'ACOMPAÑAMIENTOS': Icons.fastfood,
+    'SANDWICH': Icons.breakfast_dining,
+    'COMBOS': Icons.takeout_dining,
+    'OTROS': Icons.category,
+  };
+
+  IconData _getIconForCategory(String categoryName) {
+    return _categoryIcons[categoryName.toUpperCase()] ?? Icons.label_important_outline;
+  }
 
   @override
   void initState() {
@@ -80,13 +94,32 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     }
   }
 
+  // MODIFIED _handleProductInteraction method's .then() block
   void _handleProductInteraction(Product product) {
     showDialog<dynamic>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
     ).then((result) {
-      if (result == true) {
-        print('MenuR9ZonaFrancaScreen: ProductDetailDialog closed with success (item added).');
+      if (result != null && result is Map<String, dynamic>) {
+        final String productName = result['productName'] ?? 'Producto';
+        final int quantity = result['quantity'] ?? 0;
+        // Ensure totalPrice is treated as double, even if it comes as int from JSON map in some cases
+        final double totalPrice = (result['totalPrice'] as num?)?.toDouble() ?? 0.0;
+
+
+        if (mounted) { // Good practice to check if widget is still in tree
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$productName (x$quantity) agregado al carrito. Total: \$${totalPrice.toStringAsFixed(0)}'),
+              // Using theme's primary color for SnackBar background for consistency
+              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
+              // Or use AppColors.success if a distinct success color is preferred:
+              // backgroundColor: AppColors.success.withOpacity(0.9),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        print('MenuR9ZonaFrancaScreen: Item added - $productName (x$quantity), Total: $totalPrice');
       } else {
-        print('MenuR9ZonaFrancaScreen: ProductDetailDialog dismissed without adding to cart (result: $result).');
+        print('MenuR9ZonaFrancaScreen: ProductDetailDialog dismissed without adding item (result: $result).');
       }
     });
   }
@@ -114,33 +147,9 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     );
   }
 
-  Widget _buildLoadingSkeletonGrid() {
-    int skeletonItemCount = 6;
-    return GridView.builder(
-      padding: const EdgeInsets.all(16.0),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12.0,
-        mainAxisSpacing: 12.0,
-        childAspectRatio: 200 / 320,
-      ),
-      itemCount: skeletonItemCount,
-      itemBuilder: (context, index) {
-        return const ShimmerLoading(
-          isLoading: true,
-          child: ProductCardSkeleton(),
-        );
-      },
-    );
-  }
-
   Widget _buildBody() {
-    if (_isLoading) {
-      return _buildLoadingSkeletonGrid();
-    }
-    if (_error != null) {
-      return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),);
-    }
+    if (_isLoading) { return const Center(child: CircularProgressIndicator()); }
+    if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
     if (_allZonaFrancaProducts.isEmpty) {
          return Center(child: Text('No hay productos disponibles para Zona Franca.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
