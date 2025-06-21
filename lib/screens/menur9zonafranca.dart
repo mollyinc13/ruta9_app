@@ -79,7 +79,8 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
   }
 
   void _handleProductInteraction(Product product) {
-    showDialog<dynamic>>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
+    // Corrected line:
+    showDialog<dynamic>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
     ).then((result) {
       if (result == true) {
         print('MenuR9ZonaFrancaScreen: ProductDetailDialog closed with success (item added).');
@@ -92,11 +93,16 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
 
   @override
   Widget build(BuildContext context) {
+    // Added a null check for _tabController before accessing its length or properties
+    bool showTabBar = _tabController != null &&
+                      _tabController!.length > 0 &&
+                      !(_tabController!.length == 1 && _tabCategories.first == "TODOS" && _allZonaFrancaProducts.isEmpty);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ruta 9 - Zona Franca'),
         automaticallyImplyLeading: false,
-        bottom: _tabController != null && _tabController!.length > 0 && !(_tabController!.length == 1 && _tabCategories.first == "TODOS" && _allZonaFrancaProducts.isEmpty)
+        bottom: showTabBar
             ? TabBar(
                 controller: _tabController,
                 isScrollable: true,
@@ -114,29 +120,32 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     if (_isLoading) { return const Center(child: CircularProgressIndicator()); }
     if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
 
-    if (_tabController == null || _tabController!.length == 0) {
+    // Simplified condition for showing "No products" message
+    if (_allZonaFrancaProducts.isEmpty) {
          return Center(child: Text('No hay productos disponibles para Zona Franca.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
     }
-    if (_tabController!.length == 1 && _tabCategories.first == "TODOS" && _allZonaFrancaProducts.isEmpty) {
-        return Center(child: Text('No hay productos disponibles para Zona Franca.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));
+    // If _tabController is null (can happen briefly or on error during init), show loading or empty.
+    // This check is important before TabBarView.
+    if (_tabController == null) {
+        return const Center(child: CircularProgressIndicator()); // Or an appropriate empty/error message
     }
 
+
     return TabBarView(
-      key: ValueKey(_tabCategories.join('-')), // Add a key to force rebuild if tabs change drastically
+      key: ValueKey(_tabCategories.join('-')),
       controller: _tabController,
       children: _tabCategories.map((String category) {
         final productsToShow = (category == "TODOS")
             ? _allZonaFrancaProducts
             : (_productsByCategory[category] ?? []);
 
-        if (productsToShow.isEmpty && category == "TODOS" && _tabCategories.length > 1) {
-             return Center(child: Text('No hay productos disponibles.', style: Theme.of(context).textTheme.titleMedium));
-        } else if (productsToShow.isEmpty && category != "TODOS") {
+        // Simplified empty message logic within TabBarView child
+        if (productsToShow.isEmpty) {
              return Center(child: Text('No hay productos en la categoría ${category.toUpperCase()}.', style: Theme.of(context).textTheme.titleMedium));
         }
 
         return GridView.builder(
-          key: PageStorageKey(category), // Preserve scroll position per tab
+          key: PageStorageKey(category),
           padding: const EdgeInsets.all(16.0),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
@@ -147,29 +156,26 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
           itemCount: productsToShow.length,
           itemBuilder: (context, index) {
             final product = productsToShow[index];
-
-            // --- Add Animation Here ---
             return TweenAnimationBuilder<double>(
-              key: ValueKey(product.id), // Ensure animation reruns if product changes
+              key: ValueKey(product.id),
               tween: Tween<double>(begin: 0.0, end: 1.0),
-              duration: Duration(milliseconds: 300 + (index % 5 * 100)), // Staggered delay
+              duration: Duration(milliseconds: 300 + (index % 5 * 100)),
               curve: Curves.easeOut,
               builder: (BuildContext context, double value, Widget? child) {
                 return Opacity(
-                  opacity: value, // Fade-in
+                  opacity: value,
                   child: Transform.translate(
-                    offset: Offset(0, (1.0 - value) * 30), // Slide-up from 30px below
+                    offset: Offset(0, (1.0 - value) * 30),
                     child: child,
                   ),
                 );
               },
-              child: ProductCard( // The actual ProductCard is the child
+              child: ProductCard(
                 product: product,
                 onTap: () => _handleProductInteraction(product),
                 onAddButtonPressed: () => _handleProductInteraction(product),
               ),
             );
-            // --- End Animation ---
           },
         );
       }).toList(),
