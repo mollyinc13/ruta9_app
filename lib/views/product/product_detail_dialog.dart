@@ -1,10 +1,9 @@
 // lib/views/product/product_detail_dialog.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Import Provider package
+import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
 import '../../models/agregado_model.dart';
-import '../../models/cart_item_model.dart'; // Import CartItem model (though not directly instantiated here after change)
-import '../../providers/cart_provider.dart'; // Import CartProvider
+import '../../providers/cart_provider.dart';
 import '../../core/constants/colors.dart';
 
 class ProductDetailDialog extends StatefulWidget {
@@ -17,7 +16,7 @@ class ProductDetailDialog extends StatefulWidget {
 
 class _ProductDetailDialogState extends State<ProductDetailDialog> {
   int _quantity = 1;
-  Set<Agregado> _selectedAgregados = {}; // Keep this for UI selection state
+  Set<Agregado> _selectedAgregados = {};
 
   @override
   void initState() {
@@ -51,33 +50,24 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
 
   double _calculateTotalPrice() {
     double baseSinglePrice = widget.product.precio;
-    for (var agregado in _selectedAgregados) {
-      baseSinglePrice += agregado.precio;
-    }
+    for (var agregado in _selectedAgregados) { baseSinglePrice += agregado.precio; }
     return baseSinglePrice * _quantity;
   }
 
-  // Modified _addToCart to use CartProvider
   void _addToCart() {
-    // Access CartProvider - listen: false because we're only calling a method, not listening for UI updates here.
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-
     cartProvider.addItem(
       product: widget.product,
       quantity: _quantity,
-      selectedAgregados: _selectedAgregados.toList(), // Convert Set to List for CartProvider
+      selectedAgregados: _selectedAgregados.toList(),
     );
-
-    // UI Feedback (SnackBar)
-    final double finalPrice = _calculateTotalPrice(); // For display in SnackBar
+    final double finalPrice = _calculateTotalPrice();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('${widget.product.nombre} (x$_quantity) agregado al carrito. Total: \$${finalPrice.toStringAsFixed(0)}'),
       backgroundColor: AppColors.success.withOpacity(0.9),
-      duration: const Duration(seconds: 2), // Shortened duration
+      duration: const Duration(seconds: 2),
     ));
-
-    Navigator.of(context).pop(true); // Pop with a success indicator (optional)
-                                     // No longer passing cartItem map directly from here
+    Navigator.of(context).pop(true); // Return true on successful add
   }
 
   Widget _buildAgregadosList() {
@@ -125,24 +115,53 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
       child: ClipRRect(
         borderRadius: dialogBorderRadius,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              ClipRRect( borderRadius: BorderRadius.only( topLeft: dialogBorderRadius.topLeft, topRight: dialogBorderRadius.topRight,),
-                child: SizedBox( height: 180, child: Image.asset( imagePath, fit: BoxFit.cover, errorBuilder: (ctx, err, st) => Container( alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.5), child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60), ),),),),
-              Padding( padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-                child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ Text(widget.product.nombre, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)), const SizedBox(height: 6), Text('\$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.headlineMedium?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)), ],),),
-              if (widget.product.descripcion != null && widget.product.descripcion!.isNotEmpty)
-                Padding( padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), child: Text(widget.product.descripcion!, style: textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis), ),
-              Expanded( child: SingleChildScrollView( child: _buildAgregadosList(),),),
-              Padding( padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                child: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [ Text("Cantidad:", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)), Container( decoration: BoxDecoration(border: Border.all(color: AppColors.textMuted.withOpacity(0.5), width: 1), borderRadius: BorderRadius.circular(8),), child: Row(children: [ IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _decrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), Padding(padding: const EdgeInsets.symmetric(horizontal: 12.0), child: Text('$_quantity', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),),), IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _incrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), ],),),],),),
-              Padding( padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0), child: ElevatedButton( style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)), onPressed: _addToCart, child: Text('Agregar \$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.labelLarge),),),
-            ],
-          )
+        child: Stack( // Use Stack to overlay a close button
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  ClipRRect( borderRadius: BorderRadius.only( topLeft: dialogBorderRadius.topLeft, topRight: dialogBorderRadius.topRight,),
+                    child: SizedBox( height: 180, child: Image.asset( imagePath, fit: BoxFit.cover, errorBuilder: (ctx, err, st) => Container( alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.5), child: Icon(Icons.fastfood, color: AppColors.textMuted, size: 60), ),),),),
+                  Padding( padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                    child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ Text(widget.product.nombre, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)), const SizedBox(height: 6), Text('\$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.headlineMedium?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)), ],),),
+                  if (widget.product.descripcion != null && widget.product.descripcion!.isNotEmpty)
+                    Padding( padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), child: Text(widget.product.descripcion!, style: textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis), ),
+                  Expanded( child: SingleChildScrollView( child: _buildAgregadosList(),),),
+                  Padding( padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                    child: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [ Text("Cantidad:", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)), Container( decoration: BoxDecoration(border: Border.all(color: AppColors.textMuted.withOpacity(0.5), width: 1), borderRadius: BorderRadius.circular(8),), child: Row(children: [ IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _decrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), Padding(padding: const EdgeInsets.symmetric(horizontal: 12.0), child: Text('$_quantity', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),),), IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _incrementQuantity, color: AppColors.primaryRed, iconSize: 28, splashRadius: 24,), ],),),],),),
+                  Padding( padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0), child: ElevatedButton( style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)), onPressed: _addToCart, child: Text('Agregar \$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.labelLarge),),),
+                ],
+              )
+            ),
+            Positioned( // Close button
+              top: 8,
+              right: 8,
+              child: Material( // Material for InkWell splash
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  onTap: () {
+                    Navigator.of(context).pop(); // Pop without a result (or with false)
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                     decoration: BoxDecoration(
+                       color: AppColors.backgroundDark.withOpacity(0.5), // Semi-transparent background
+                       shape: BoxShape.circle,
+                     ),
+                    child: Icon(
+                      Icons.close,
+                      color: AppColors.textLight.withOpacity(0.8),
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
