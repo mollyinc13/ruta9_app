@@ -1,10 +1,10 @@
 // lib/widgets/product_card.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // Required for debugPrint
 import '../models/product_model.dart';
 import '../core/constants/colors.dart';
-import 'tap_scale_wrapper.dart'; // Assuming TapScaleWrapper is available for button animation
+import 'tap_scale_wrapper.dart';
 
-// Changed to StatefulWidget to manage favorite state locally
 class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onAddButtonPressed;
@@ -22,7 +22,7 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
-  bool _isFavorite = false; // Local state for favorite toggle
+  bool _isFavorite = false;
 
   String _getImagePath(Product product) {
     String imageName = product.imagen ?? "";
@@ -46,9 +46,13 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    // --- ADDED DEBUG PRINT ---
+    debugPrint("[ProductCard build] Product: ${widget.product.id}, onAddButtonPressed is ${widget.onAddButtonPressed == null ? 'NULL' : 'NOT NULL'}");
+    // --- END ADDED DEBUG PRINT ---
+
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final String imagePath = _getImagePath(widget.product);
+    final String imagePath = _getImagePath(widget.product); // Corrected call
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -126,22 +130,13 @@ class _ProductCardState extends State<ProductCard> {
                         Text( '\$${widget.product.precio.toStringAsFixed(0)}', style: textTheme.titleMedium?.copyWith( color: colorScheme.secondary, fontWeight: FontWeight.bold, ), ),
                       ],
                     ),
-                    // const SizedBox(height: 8), // Space before button, can be adjusted
                     SizedBox(
                       width: double.infinity,
                       child: TapScaleWrapper(
                         onPressed: widget.onAddButtonPressed,
                         child: ElevatedButton(
-                          onPressed: () {}, // Dummy, handled by wrapper
-                          style: ElevatedButton.styleFrom(
-                            // Override theme padding for a more compact button
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            textStyle: textTheme.labelLarge?.copyWith(fontSize: 14), // Use labelLarge but ensure size
-                            // Inherit other properties like backgroundColor, shape from theme:
-                            backgroundColor: Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({}),
-                            shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}),
-                            elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({}),
-                          ),
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), textStyle: textTheme.labelLarge?.copyWith(fontSize: 14), backgroundColor: Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({}), shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}), elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({}) ),
                           child: const Text('Agregar'),
                         ),
                       ),
