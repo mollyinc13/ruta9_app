@@ -3,107 +3,97 @@ import 'package:flutter/foundation.dart';
 import '../models/product_model.dart';
 import '../models/agregado_model.dart';
 import '../models/cart_item_model.dart';
-import 'dart:math'; // For random ID generation, or use uuid package
+// import 'dart:math'; // Not used if _generateCartItemId is deterministic
 
 class CartProvider with ChangeNotifier {
-  final Map<String, CartItem> _items = {}; // Use Map for easier access by ID
+  final Map<String, CartItem> _items = {};
 
-  Map<String, CartItem> get items {
-    return {..._items}; // Return a copy
-  }
-
-  List<CartItem> get itemsList {
-    return _items.values.toList();
-  }
+  Map<String, CartItem> get items => {..._items};
+  List<CartItem> get itemsList => _items.values.toList();
 
   int get itemCount {
-    // Returns the total number of individual products in the cart (sum of quantities)
     int count = 0;
-    _items.forEach((key, cartItem) {
-      count += cartItem.quantity;
-    });
+    _items.forEach((key, cartItem) { count += cartItem.quantity; });
     return count;
   }
 
-  int get uniqueItemCount {
-    // Returns the number of unique line items in the cart
-    return _items.length;
-  }
+  int get uniqueItemCount => _items.length;
 
   double get totalPrice {
     double total = 0.0;
-    _items.forEach((key, cartItem) {
-      total += cartItem.itemTotalPrice;
-    });
+    _items.forEach((key, cartItem) { total += cartItem.itemTotalPrice; });
     return total;
   }
 
-  // Generates a unique ID for a cart item based on product ID and selected agregados.
-  // This ensures that the same product with different agregados is a different cart item.
   String _generateCartItemId(String productId, List<Agregado> selectedAgregados) {
-    if (selectedAgregados.isEmpty) {
-      return productId;
-    }
-    // Sort agregados by name to ensure consistent ID regardless of selection order
+    if (selectedAgregados.isEmpty) { return productId; }
     List<String> agregadoNames = selectedAgregados.map((ag) => ag.nombre).toList()..sort();
     return '$productId-${agregadoNames.join('-')}';
   }
 
+  // MODIFIED addItem method with Debug Prints
   void addItem({
     required Product product,
     required int quantity,
     required List<Agregado> selectedAgregados,
   }) {
+    debugPrint("[CartProvider.addItem] Entered addItem method.");
+    debugPrint("[CartProvider.addItem] Product: ${product.nombre} (ID: ${product.id}), Quantity: $quantity, Agregados: ${selectedAgregados.map((ag) => ag.nombre).join(', ')}");
+
     final cartItemId = _generateCartItemId(product.id, selectedAgregados);
+    debugPrint("[CartProvider.addItem] Generated cartItemId: $cartItemId");
 
     double singleItemBasePrice = product.precio;
     for (var agregado in selectedAgregados) {
       singleItemBasePrice += agregado.precio;
     }
-    final double itemTotalPriceForNewAddition = singleItemBasePrice * quantity;
+    final double itemTotalPriceContribution = singleItemBasePrice * quantity; // Price for the quantity being added *now*
 
     if (_items.containsKey(cartItemId)) {
-      // If item already exists with the same configuration, update quantity and total price
+      debugPrint("[CartProvider.addItem] Item $cartItemId already exists. Updating quantity.");
       _items.update(
         cartItemId,
-        (existingCartItem) => CartItem(
-          id: existingCartItem.id,
-          product: existingCartItem.product,
-          quantity: existingCartItem.quantity + quantity, // Add to existing quantity
-          selectedAgregados: existingCartItem.selectedAgregados, // Agregados don't change for existing item
-          itemTotalPrice: existingCartItem.itemTotalPrice + itemTotalPriceForNewAddition, // Add to existing total
-        ),
+        (existingCartItem) {
+          int newQuantity = existingCartItem.quantity + quantity;
+          double newItemTotalPrice = existingCartItem.itemTotalPrice + itemTotalPriceContribution; // Add contribution
+          return CartItem(
+            id: existingCartItem.id,
+            product: existingCartItem.product,
+            quantity: newQuantity,
+            selectedAgregados: existingCartItem.selectedAgregados,
+            itemTotalPrice: newItemTotalPrice,
+          );
+        },
       );
-      print('CartProvider: Updated quantity for item $cartItemId. New quantity: ${_items[cartItemId]!.quantity}');
+      debugPrint("[CartProvider.addItem] Updated item $cartItemId. New quantity: ${_items[cartItemId]!.quantity}, New itemTotalPrice: ${_items[cartItemId]!.itemTotalPrice}");
     } else {
-      // If it's a new item (or new configuration of an existing product)
+      debugPrint("[CartProvider.addItem] Item $cartItemId is new. Adding to cart.");
       _items.putIfAbsent(
         cartItemId,
         () => CartItem(
           id: cartItemId,
           product: product,
           quantity: quantity,
-          selectedAgregados: List.from(selectedAgregados), // Create a new list
-          itemTotalPrice: itemTotalPriceForNewAddition,
+          selectedAgregados: List.from(selectedAgregados),
+          itemTotalPrice: itemTotalPriceContribution, // This is the total for this new item
         ),
       );
-      print('CartProvider: Added new item $cartItemId to cart.');
+      debugPrint("[CartProvider.addItem] Added new item $cartItemId. Quantity: ${_items[cartItemId]!.quantity}, itemTotalPrice: ${_items[cartItemId]!.itemTotalPrice}");
     }
+
+    debugPrint("[CartProvider.addItem] Current cart unique items: ${uniqueItemCount}, total quantity: ${itemCount}, grand total price: \$${totalPrice.toStringAsFixed(0)}");
     notifyListeners();
+    debugPrint("[CartProvider.addItem] Exited addItem method and called notifyListeners().");
   }
 
   void updateItemQuantity(String cartItemId, int newQuantity) {
-    if (!_items.containsKey(cartItemId)) {
-      return;
-    }
+    if (!_items.containsKey(cartItemId)) { return; }
     if (newQuantity <= 0) {
-      // If new quantity is zero or less, remove the item
       removeItem(cartItemId);
     } else {
       _items.update(
         cartItemId,
         (existingCartItem) {
-          // Recalculate total price for this item based on the new quantity
           double singleItemBasePrice = existingCartItem.product.precio;
           for (var agregado in existingCartItem.selectedAgregados) {
             singleItemBasePrice += agregado.precio;

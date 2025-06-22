@@ -40,11 +40,8 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   void _toggleFavorite() {
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
+    setState(() { _isFavorite = !_isFavorite; });
     print('Favorite toggled for ${widget.product.id}: $_isFavorite (UI only)');
-    // In a real app, this would also call a provider/service to update backend/local persistence
   }
 
   @override
@@ -62,7 +59,7 @@ class _ProductCardState extends State<ProductCard> {
           children: <Widget>[
             Expanded(
               flex: 3,
-              child: Stack( // Use Stack to overlay favorite button on image
+              child: Stack(
                 children: [
                   Positioned.fill(
                     child: Hero(
@@ -76,16 +73,24 @@ class _ProductCardState extends State<ProductCard> {
                           imagePath,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return Container( alignment: Alignment.center, color: AppColors.surfaceDark.withOpacity(0.8), child: Icon( Icons.fastfood, color: AppColors.textMuted.withOpacity(0.6), size: 40, ), );
-                           },
+                            return Container(
+                              alignment: Alignment.center,
+                              color: AppColors.surfaceDark.withOpacity(0.8),
+                              child: Icon(
+                                Icons.fastfood,
+                                color: AppColors.textMuted.withOpacity(0.6),
+                                size: 40,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
                   ),
-                  Positioned( // Favorite button
+                  Positioned(
                     top: 8,
                     right: 8,
-                    child: Material( // Material for InkWell splash and shape
+                    child: Material(
                       color: AppColors.backgroundDark.withOpacity(0.4),
                       shape: const CircleBorder(),
                       clipBehavior: Clip.antiAlias,
@@ -94,9 +99,9 @@ class _ProductCardState extends State<ProductCard> {
                           _isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: _isFavorite ? colorScheme.primary : AppColors.textLight.withOpacity(0.9),
                         ),
-                        iconSize: 24, // Adjust size as needed
-                        padding: const EdgeInsets.all(6), // Adjust padding for touch area
-                        constraints: const BoxConstraints(), // Remove default IconButton padding
+                        iconSize: 24,
+                        padding: const EdgeInsets.all(6),
+                        constraints: const BoxConstraints(),
                         tooltip: _isFavorite ? 'Quitar de Favoritos' : 'Agregar a Favoritos',
                         onPressed: _toggleFavorite,
                       ),
@@ -121,14 +126,22 @@ class _ProductCardState extends State<ProductCard> {
                         Text( '\$${widget.product.precio.toStringAsFixed(0)}', style: textTheme.titleMedium?.copyWith( color: colorScheme.secondary, fontWeight: FontWeight.bold, ), ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    // const SizedBox(height: 8), // Space before button, can be adjusted
                     SizedBox(
                       width: double.infinity,
                       child: TapScaleWrapper(
                         onPressed: widget.onAddButtonPressed,
                         child: ElevatedButton(
                           onPressed: () {}, // Dummy, handled by wrapper
-                          style: Theme.of(context).elevatedButtonTheme.style,
+                          style: ElevatedButton.styleFrom(
+                            // Override theme padding for a more compact button
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            textStyle: textTheme.labelLarge?.copyWith(fontSize: 14), // Use labelLarge but ensure size
+                            // Inherit other properties like backgroundColor, shape from theme:
+                            backgroundColor: Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({}),
+                            shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}),
+                            elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({}),
+                          ),
                           child: const Text('Agregar'),
                         ),
                       ),
