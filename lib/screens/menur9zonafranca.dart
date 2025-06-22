@@ -4,6 +4,8 @@ import 'package:collection/collection.dart'; // For groupBy
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../widgets/product_card.dart';
+import '../widgets/product_card_skeleton.dart';
+import '../widgets/shimmer_loading.dart';
 import '../views/product/product_detail_dialog.dart';
 // AppColors might be needed if SnackBar uses it explicitly, else Theme colors are fine
 import '../core/constants/colors.dart';
@@ -94,32 +96,34 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     }
   }
 
-  // MODIFIED _handleProductInteraction method's .then() block
+  // MODIFIED _handleProductInteraction method's .then() block with Debug Prints
   void _handleProductInteraction(Product product) {
+    debugPrint("[MenuR9ZonaFrancaScreen._handleProductInteraction] Opening ProductDetailDialog for ${product.nombre}");
     showDialog<dynamic>( context: context, builder: (BuildContext dialogContext) { return ProductDetailDialog(product: product); },
     ).then((result) {
+      debugPrint("[MenuR9ZonaFrancaScreen._handleProductInteraction.then] Dialog closed. Result: $result");
       if (result != null && result is Map<String, dynamic>) {
         final String productName = result['productName'] ?? 'Producto';
         final int quantity = result['quantity'] ?? 0;
         // Ensure totalPrice is treated as double, even if it comes as int from JSON map in some cases
         final double totalPrice = (result['totalPrice'] as num?)?.toDouble() ?? 0.0;
 
+        debugPrint("[MenuR9ZonaFrancaScreen._handleProductInteraction.then] Item added details - Name: $productName, Qty: $quantity, Total: $totalPrice");
 
-        if (mounted) { // Good practice to check if widget is still in tree
+        if (mounted) {
+          debugPrint("[MenuR9ZonaFrancaScreen._handleProductInteraction.then] Showing SnackBar for item added.");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('$productName (x$quantity) agregado al carrito. Total: \$${totalPrice.toStringAsFixed(0)}'),
-              // Using theme's primary color for SnackBar background for consistency
               backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
-              // Or use AppColors.success if a distinct success color is preferred:
-              // backgroundColor: AppColors.success.withOpacity(0.9),
               duration: const Duration(seconds: 3),
             ),
           );
+        } else {
+          debugPrint("[MenuR9ZonaFrancaScreen._handleProductInteraction.then] Widget not mounted, SnackBar not shown.");
         }
-        print('MenuR9ZonaFrancaScreen: Item added - $productName (x$quantity), Total: $totalPrice');
       } else {
-        print('MenuR9ZonaFrancaScreen: ProductDetailDialog dismissed without adding item (result: $result).');
+        debugPrint("[MenuR9ZonaFrancaScreen._handleProductInteraction.then] Dialog dismissed without adding item or with unexpected result.");
       }
     });
   }
@@ -147,8 +151,28 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
     );
   }
 
+  Widget _buildLoadingSkeletonGrid() {
+    int skeletonItemCount = 6;
+    return GridView.builder(
+      padding: const EdgeInsets.all(16.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12.0,
+        mainAxisSpacing: 12.0,
+        childAspectRatio: 200 / 320,
+      ),
+      itemCount: skeletonItemCount,
+      itemBuilder: (context, index) {
+        return const ShimmerLoading(
+          isLoading: true,
+          child: ProductCardSkeleton(),
+        );
+      },
+    );
+  }
+
   Widget _buildBody() {
-    if (_isLoading) { return const Center(child: CircularProgressIndicator()); }
+    if (_isLoading) { return _buildLoadingSkeletonGrid(); }
     if (_error != null) { return Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red), textAlign: TextAlign.center,),),); }
     if (_allZonaFrancaProducts.isEmpty) {
          return Center(child: Text('No hay productos disponibles para Zona Franca.', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center,));

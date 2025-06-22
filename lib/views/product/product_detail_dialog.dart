@@ -56,22 +56,40 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
     return total * _quantity;
   }
 
-  // MODIFIED _addToCart method
+  // MODIFIED _addToCart method with Debug Prints
   void _addToCart() {
+    debugPrint("[ProductDetailDialog._addToCart] Entered _addToCart method.");
+    debugPrint("[ProductDetailDialog._addToCart] Product: ${widget.product.nombre}, ID: ${widget.product.id}");
+    debugPrint("[ProductDetailDialog._addToCart] Quantity: $_quantity");
+    debugPrint("[ProductDetailDialog._addToCart] Selected Agregados: ${_selectedAgregados.map((ag) => ag.nombre).join(', ')}");
+
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    final double finalPrice = _calculateTotalPrice(); // Calculate price to pass back
+    final double finalPrice = _calculateTotalPrice();
 
-    cartProvider.addItem(
-      product: widget.product,
-      quantity: _quantity,
-      selectedAgregados: _selectedAgregados.toList(),
-    );
+    debugPrint("[ProductDetailDialog._addToCart] Calculated finalPrice for pop: $finalPrice");
+    debugPrint("[ProductDetailDialog._addToCart] Calling cartProvider.addItem()...");
 
-    Navigator.of(context).pop({
+    try {
+      cartProvider.addItem(
+        product: widget.product,
+        quantity: _quantity,
+        selectedAgregados: _selectedAgregados.toList(),
+      );
+      debugPrint("[ProductDetailDialog._addToCart] cartProvider.addItem() call completed.");
+    } catch (e) {
+      debugPrint("[ProductDetailDialog._addToCart] ERROR during cartProvider.addItem(): $e");
+      // Optionally, show an error SnackBar here too if addItem can throw
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al añadir al carro: $e')));
+    }
+
+    final Map<String, dynamic> popResult = {
       'productName': widget.product.nombre,
       'quantity': _quantity,
       'totalPrice': finalPrice
-    });
+    };
+    debugPrint("[ProductDetailDialog._addToCart] Popping with result: $popResult");
+    Navigator.of(context).pop(popResult);
+    debugPrint("[ProductDetailDialog._addToCart] Exited _addToCart method after pop.");
   }
 
   Widget _buildAgregadosList() {
@@ -181,9 +199,21 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                     child: TapScaleWrapper(
                       onPressed: _addToCart,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          textStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
+                          backgroundColor: Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({}),
+                          shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}),
+                          elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({})
+                        ),
                         onPressed: () {},
-                        child: Text('Agregar \$${currentTotalPrice.toStringAsFixed(0)}', style: textTheme.labelLarge),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'Agregar \$${currentTotalPrice.toStringAsFixed(0)}',
+                            style: textTheme.labelLarge?.copyWith(fontSize: 15)
+                          ),
+                        ),
                       ),
                     ),
                   ),
