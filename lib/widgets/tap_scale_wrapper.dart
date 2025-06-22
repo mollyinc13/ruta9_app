@@ -1,5 +1,6 @@
 // lib/widgets/tap_scale_wrapper.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // For debugPrint
 
 class TapScaleWrapper extends StatefulWidget {
   final Widget child;
@@ -29,7 +30,7 @@ class _TapScaleWrapperState extends State<TapScaleWrapper> with SingleTickerProv
     _controller = AnimationController(
       vsync: this,
       duration: widget.duration,
-      reverseDuration: widget.duration, // Duration for scaling back up
+      reverseDuration: widget.duration,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: widget.scaleFactor).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
@@ -43,24 +44,28 @@ class _TapScaleWrapperState extends State<TapScaleWrapper> with SingleTickerProv
   }
 
   void _handleTapDown(TapDownDetails details) {
+    debugPrint("[TapScaleWrapper _handleTapDown] Tap down detected. onPressed is ${widget.onPressed == null ? 'NULL' : 'NOT NULL'}");
     if (widget.onPressed != null) {
       _controller.forward();
     }
   }
 
   void _handleTapUp(TapUpDetails details) {
+    debugPrint("[TapScaleWrapper _handleTapUp] Tap up detected. onPressed is ${widget.onPressed == null ? 'NULL' : 'NOT NULL'}");
     if (widget.onPressed != null) {
-      _controller.reverse().then((_) {
-        // Ensure it's fully reversed before calling onPressed if animation is quick
-        // Or call onPressed immediately if preferred. For quick taps, immediate might be better.
-        // For this example, call after reverse animation.
-        widget.onPressed!();
-      });
+      // To ensure onPressed is called even if widget is disposed during animation:
+      // Call onPressed first, then reverse. Or, ensure mounted.
+      debugPrint("[TapScaleWrapper _handleTapUp] Calling widget.onPressed().");
+      widget.onPressed!();
+      if (mounted) { // Check if mounted before reversing
+        _controller.reverse();
+      }
     }
   }
 
   void _handleTapCancel() {
-    if (widget.onPressed != null) {
+    debugPrint("[TapScaleWrapper _handleTapCancel] Tap cancel detected. onPressed is ${widget.onPressed == null ? 'NULL' : 'NOT NULL'}");
+    if (widget.onPressed != null && mounted) { // Check if mounted
       _controller.reverse();
     }
   }
@@ -71,7 +76,6 @@ class _TapScaleWrapperState extends State<TapScaleWrapper> with SingleTickerProv
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
       onTapCancel: _handleTapCancel,
-      // onTap: widget.onPressed, // Alternative: use onTap for immediate action, scale for visual feedback only
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: widget.child,
