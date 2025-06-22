@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../models/product_model.dart';
 import '../core/constants/colors.dart';
-import 'tap_scale_wrapper.dart';
+// import 'tap_scale_wrapper.dart'; // REMOVED import
 
 class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onAddButtonPressed;
-  final VoidCallback? onTap; // This will be unused by ProductCard's UI after the change
+  final VoidCallback? onTap;
 
   const ProductCard({
     super.key,
     required this.product,
     this.onAddButtonPressed,
-    this.onTap, // Keep for API compatibility, though unused internally
+    this.onTap,
   });
 
   @override
@@ -126,22 +126,20 @@ class _ProductCardState extends State<ProductCard> {
                       Text( '\$${widget.product.precio.toStringAsFixed(0)}', style: textTheme.titleMedium?.copyWith( color: colorScheme.secondary, fontWeight: FontWeight.bold, ), ),
                     ],
                   ),
-                  // const SizedBox(height: 8), // REMOVED this SizedBox
                   SizedBox(
                     width: double.infinity,
-                    child: TapScaleWrapper(
-                      onPressed: widget.onAddButtonPressed,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // FURTHER REDUCED PADDING
-                          textStyle: textTheme.labelLarge?.copyWith(fontSize: 13), // SLIGHTLY SMALLER FONT
-                          backgroundColor: Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({}),
-                          shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}),
-                          elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({})
-                        ),
-                        child: const Text('Agregar'),
+                    child: ElevatedButton(
+                      onPressed: widget.onAddButtonPressed, // Directly assigned
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        textStyle: textTheme.labelLarge?.copyWith(fontSize: 13),
+                        // Rely on global theme for backgroundColor, shape, elevation
+                        // Or explicitly set them if needed:
+                        // backgroundColor: Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({}),
+                        // shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}),
+                        // elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({})
                       ),
+                      child: const Text('Agregar'),
                     ),
                   ),
                 ],
