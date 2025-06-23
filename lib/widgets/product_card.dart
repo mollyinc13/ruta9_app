@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../models/product_model.dart';
 import '../core/constants/colors.dart';
-// import 'tap_scale_wrapper.dart'; // REMOVED import
+// import 'tap_scale_wrapper.dart'; // Import was removed in previous step
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -62,8 +62,8 @@ class _ProductCardState extends State<ProductCard> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: Hero(
-                    tag: 'hero_product_image_${widget.product.id}',
+                  // child: Hero(
+                  //   tag: 'hero_product_image_${widget.product.id}',
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(12.0),
@@ -85,7 +85,7 @@ class _ProductCardState extends State<ProductCard> {
                         },
                       ),
                     ),
-                  ),
+                  // ),
                 ),
                 Positioned(
                   top: 8,
@@ -118,26 +118,27 @@ class _ProductCardState extends State<ProductCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text( widget.product.nombre, style: textTheme.titleMedium?.copyWith( fontWeight: FontWeight.bold,), maxLines: 2, overflow: TextOverflow.ellipsis, ),
-                      const SizedBox(height: 4),
-                      Text( '\$${widget.product.precio.toStringAsFixed(0)}', style: textTheme.titleMedium?.copyWith( color: colorScheme.secondary, fontWeight: FontWeight.bold, ), ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text( widget.product.nombre, style: textTheme.titleMedium?.copyWith( fontWeight: FontWeight.bold,), maxLines: 2, overflow: TextOverflow.ellipsis, ),
+                        const SizedBox(height: 4),
+                        Text( '\$${widget.product.precio.toStringAsFixed(0)}', style: textTheme.titleMedium?.copyWith( color: colorScheme.secondary, fontWeight: FontWeight.bold, ), ),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: widget.onAddButtonPressed, // Directly assigned
+                      onPressed: () {
+                        debugPrint("[ProductCard ElevatedButton] RAW TAP DETECTED for ${widget.product.id}");
+                        widget.onAddButtonPressed?.call();
+                      },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         textStyle: textTheme.labelLarge?.copyWith(fontSize: 13),
-                        // Rely on global theme for backgroundColor, shape, elevation
-                        // Or explicitly set them if needed:
-                        // backgroundColor: Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({}),
-                        // shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}),
-                        // elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({})
                       ),
                       child: const Text('Agregar'),
                     ),
