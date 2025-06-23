@@ -144,7 +144,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                 children: <Widget>[
                   // Hero(
                   //   tag: 'hero_product_image_${widget.product.id}',
-                    child: ClipRRect(
+                  ClipRRect(
                       borderRadius: BorderRadius.only( topLeft: dialogBorderRadius.topLeft, topRight: dialogBorderRadius.topRight,),
                       child: SizedBox(
                         height: 180,
