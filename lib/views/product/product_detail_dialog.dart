@@ -142,8 +142,8 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Hero(
-                    tag: 'hero_product_image_${widget.product.id}',
+                  // Hero(
+                  //   tag: 'hero_product_image_${widget.product.id}',
                     child: ClipRRect(
                       borderRadius: BorderRadius.only( topLeft: dialogBorderRadius.topLeft, topRight: dialogBorderRadius.topRight,),
                       child: SizedBox(
@@ -159,7 +159,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                         ),
                       ),
                     ),
-                  ),
+                  // ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
                     child: Column(
