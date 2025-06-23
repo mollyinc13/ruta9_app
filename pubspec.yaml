@@ -29,10 +29,12 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+
     - assets/data/ # For products.json
     - assets/videos/ # Existing entry, keep if videos are used
     - assets/images/logos/ # For logo assets like R9.png
     - assets/images/products/ # Includes all subdirectories like burgers, sandwiches, snacks, bebidas, general
+    - assets/images/products/burgers/
     - assets/images/agregados/ # For agregado images like extra_queso.jpg
     # Individual file listing (like assets/images/logos/R9.png from original file) is also fine
     # but for directories, the trailing slash is important.
