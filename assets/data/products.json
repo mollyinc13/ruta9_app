@@ -2,5 +2,39 @@
   { "id": "B1 CHEDDAR", "nombre": "B1 CHEDDAR", "precio": 8200.0, "descripcion": "Burguer y queso gouda o cheddar", "subcategoria": "BURGER", "contieneModificadores": true, "zonaFranca": true, "localCentral": false, "imagen": "B1.jpg", "agregados": [] },
   { "id": "B2", "nombre": "B2", "precio": 9600.0, "descripcion": "Queso Gouda, lechuga, tomate, cebolla morada y huevo frito", "subcategoria": "BURGER", "contieneModificadores": true, "zonaFranca": true, "localCentral": false, "imagen": "B2.jpg", "agregados": [] },
   { "id": "B3", "nombre": "B3", "precio": 10900.0, "descripcion": "Burger con queso cheddar, tocino, huevo frito, pepinillos y salsa BBQ", "subcategoria": "BURGER", "contieneModificadores": false, "zonaFranca": true, "localCentral": false, "imagen": "B3.jpg", "agregados": [] },
-  { "id": "B4", "nombre": "B4", "precio": 10400.0, "descripcion": "Burger con camarones al limón y palta trozada", "subcategoria": "BURGER", "contieneModificadores": false, "zonaFranca": true, "localCentral": false, "imagen": "B4.jpg", "agregados": [] }
-  ]
+  { "id": "B4", "nombre": "B4", "precio": 10400.0, "descripcion": "Burger con camarones al limón y palta trozada", "subcategoria": "BURGER", "contieneModificadores": false, "zonaFranca": true, "localCentral": false, "imagen": "B4.jpg", "agregados": [] },
+    {
+        "id": "S1 TLT",
+        "nombre": "S1 TLT",
+        "precio": 9200.0,
+        "descripcion": "BAGUETTE DE TOCINO + LECHUGA + TOMATE",
+        "subcategoria": "SANDWICHES",
+        "contieneModificadores": false,
+        "zonaFranca": true,
+        "localCentral": false,
+        "imagen": "S1.jpg",
+        "agregados": []
+    },
+    {
+        "id": "B4",
+        "nombre": "B4",
+        "precio": 10400.0,
+        "descripcion": "Burger con camarones al limón y palta trozada",
+        "subcategoria": "BURGER",
+        "contieneModificadores": false,
+        "zonaFranca": true,
+        "localCentral": false,
+        "imagen": "B4.jpg",
+        "agregados": []
+    },
+    {   "id": "K1",
+        "nombre": "K1",
+        "precio": 5500.0,
+        "descripcion": "AROS DE CEBOLLA APANADOS (15U.)",
+        "subcategoria": "SNACKS",
+        "contieneModificadores": false,
+        "zonaFranca": true,
+        "localCentral": false,
+        "imagen": "K1.jpg",
+        "agregados": []
+    }]
