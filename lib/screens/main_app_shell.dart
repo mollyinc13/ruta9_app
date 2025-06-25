@@ -30,6 +30,7 @@ class _MainAppShellState extends State<MainAppShell> {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final cartItemCount = context.watch<CartProvider>().itemCount;
+    debugPrint("[MainAppShell.build] Rebuilding. Cart item count: $cartItemCount"); // <-- NUEVO DEBUG PRINT
 
     return Scaffold(
       body: AnimatedSwitcher( // MODIFIED: Replaced IndexedStack

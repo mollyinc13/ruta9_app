@@ -28,15 +28,18 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
 
   final Map<String, IconData> _categoryIcons = {
     'BURGER': Icons.lunch_dining,
-    'BEBIDAS': Icons.local_bar,
-    'ACOMPAÑAMIENTOS': Icons.fastfood,
-    'SANDWICH': Icons.breakfast_dining,
+    'SANDWICH': Icons.breakfast_dining, // Usando breakfast_dining para Sandwich
+    'SNACK': Icons.fastfood,
+    'BEBIDA': Icons.local_drink,
+    'ACOMPAÑAMIENTOS': Icons.fastfood, // Alias por si aparece esta categoría
     'COMBOS': Icons.takeout_dining,
     'OTROS': Icons.category,
+    'TODOS': Icons.apps // Ícono para la pestaña "TODOS"
   };
 
   IconData _getIconForCategory(String categoryName) {
-    return _categoryIcons[categoryName.toUpperCase()] ?? Icons.label_important_outline;
+    // La clave ya viene en mayúsculas desde donde se llama en TabBar
+    return _categoryIcons[categoryName] ?? Icons.label_important_outline;
   }
 
   @override
@@ -141,7 +144,15 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
             ? TabBar(
                 controller: _tabController,
                 isScrollable: true,
-                tabs: _tabCategories.map((String category) => Tab(text: category.toUpperCase())).toList(),
+                tabs: _tabCategories.map((String category) {
+                  // La categoría "TODOS" ya está en mayúsculas en _tabCategories
+                  // Otras categorías vienen de _productsByCategory.keys y pueden no estar en mayúsculas.
+                  String keyForIcon = category.toUpperCase();
+                  return Tab(icon: Icon(_getIconForCategory(keyForIcon)));
+                }).toList(),
+                // Considerar ajustar o eliminar labelStyle/unselectedLabelStyle si solo hay íconos
+                // o ajustar el tamaño del ícono si es necesario.
+                // Por ahora, los mantendré por si afectan el tamaño/padding de la Tab.
                 labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 unselectedLabelStyle: Theme.of(context).textTheme.titleSmall,
               )

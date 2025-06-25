@@ -197,7 +197,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
                     child: TapScaleWrapper(
-                      onPressed: _addToCart,
+                      // onPressed: _addToCart, // Se mueve al ElevatedButton
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -206,7 +206,7 @@ class _ProductDetailDialogState extends State<ProductDetailDialog> {
                           shape: Theme.of(context).elevatedButtonTheme.style?.shape?.resolve({}),
                           elevation: Theme.of(context).elevatedButtonTheme.style?.elevation?.resolve({})
                         ),
-                        onPressed: () {},
+                        onPressed: _addToCart, // <--- CORRECCIÓN AQUÍ
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
