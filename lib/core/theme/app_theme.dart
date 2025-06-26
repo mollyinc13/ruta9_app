@@ -18,7 +18,7 @@ class AppTheme {
         onSecondary: AppColors.black,
         onBackground: AppColors.textLight,
         onSurface: AppColors.textLight,
-        error: AppColors.error,
+        error: AppColors.accentRed, // Usar un rojo de la paleta definida
         onError: AppColors.white,
       ),
 

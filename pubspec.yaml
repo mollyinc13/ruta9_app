@@ -19,6 +19,7 @@ dependencies:
   google_fonts: ^6.2.1
   provider: ^6.1.2 # Added line
   shimmer: ^3.0.0 # Added shimmer dependency
+  flutter_native_splash: ^2.4.0 # Added for native splash screen
 
 dev_dependencies:
   flutter_test:
@@ -50,3 +51,10 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/logos/R9.png"
+
+flutter_native_splash:
+  color: "#121212" # Corresponds to AppColors.primaryDark
+  image: assets/images/logos/R9.png
+  android: true
+  ios: true
+  web: false # Assuming web is not a target for this specific splash

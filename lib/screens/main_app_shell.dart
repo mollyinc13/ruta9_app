@@ -30,12 +30,22 @@ class _MainAppShellState extends State<MainAppShell> {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final cartItemCount = context.watch<CartProvider>().itemCount;
-    debugPrint("[MainAppShell.build] Rebuilding. Cart item count: $cartItemCount"); // <-- NUEVO DEBUG PRINT
+    debugPrint("[MainAppShell.build] Rebuilding. Cart item count: $cartItemCount");
 
-    return Scaffold(
-      body: AnimatedSwitcher( // MODIFIED: Replaced IndexedStack
-        duration: const Duration(milliseconds: 300), // Duration of the fade
-        transitionBuilder: (Widget child, Animation<double> animation) {
+    return WillPopScope(
+      onWillPop: () async {
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+          return false; // No salir de la app, ir a la pestaña inicial
+        }
+        return true; // Salir de la app si ya está en la pestaña inicial
+      },
+      child: Scaffold(
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (Widget child, Animation<double> animation) {
           return FadeTransition( // Apply fade transition
             opacity: animation,
             child: child,

@@ -145,13 +145,29 @@ class _MenuR9ZonaFrancaScreenState extends State<MenuR9ZonaFrancaScreen> with Si
                 controller: _tabController,
                 isScrollable: true,
                 tabs: _tabCategories.map((String category) {
-                  // La categoría "TODOS" ya está en mayúsculas en _tabCategories
-                  // Otras categorías vienen de _productsByCategory.keys y pueden no estar en mayúsculas.
                   String keyForIcon = category.toUpperCase();
-                  return Tab(icon: Icon(_getIconForCategory(keyForIcon)));
+                  return Tab(
+                    icon: InkResponse(
+                      onTap: () {
+                        // El TabBar se encarga del cambio de pestaña.
+                        // Este onTap es para activar el efecto InkResponse.
+                        // Si el TabBar no registra el tap en el Icon directamente,
+                        // podríamos necesitar llamar a _tabController.animateTo(index) aquí,
+                        // pero usualmente TabBar es suficientemente inteligente.
+                      },
+                      radius: 35, // Radio del efecto ripple
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0), // Padding para área de toque
+                        child: Icon(
+                          _getIconForCategory(keyForIcon),
+                          size: 28.0, // Tamaño del ícono aumentado (era 24 por defecto)
+                        ),
+                      ),
+                    ),
+                  );
                 }).toList(),
-                // Considerar ajustar o eliminar labelStyle/unselectedLabelStyle si solo hay íconos
-                // o ajustar el tamaño del ícono si es necesario.
+                // labelStyle y unselectedLabelStyle pueden ser innecesarios si solo hay íconos,
+                // pero los mantengo por si afectan el espaciado/altura de la TabBar.
                 // Por ahora, los mantendré por si afectan el tamaño/padding de la Tab.
                 labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 unselectedLabelStyle: Theme.of(context).textTheme.titleSmall,
