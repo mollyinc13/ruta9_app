@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'main_app_shell.dart';
+import 'menuruta9central.dart';
 
 // Helper class for Fade Page Route (can be in its own file or here for simplicity)
 class FadeRoute extends PageRouteBuilder {
@@ -154,7 +155,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 _animatedButton(
                   text: "RUTA 9 CENTRAL",
                   onPressed: () {
-                    Navigator.pushReplacement(context, FadeRoute(page: const MainAppShell())); // MODIFIED
+                    Navigator.pushReplacement(context, FadeRoute(page: const MenuRuta9CentralScreen())); // MODIFIED
                   },
                 ),
                 const SizedBox(height: 16),
