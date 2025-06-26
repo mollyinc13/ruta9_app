@@ -128,10 +128,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
+    return WillPopScope(
+      onWillPop: () async {
+        // Permite salir de la app desde WelcomeScreen
+        return true;
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(
             child: _controller.value.isInitialized
                 ? FittedBox( fit: BoxFit.cover, child: SizedBox( width: _controller.value.size.width, height: _controller.value.size.height, child: VideoPlayer(_controller),),)
                 : const Center(child: CircularProgressIndicator()),

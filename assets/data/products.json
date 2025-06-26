@@ -1,6 +1,35 @@
 [
-  { "id": "B1 CHEDDAR", "nombre": "B1 CHEDDAR", "precio": 8200.0, "descripcion": "Burguer y queso gouda o cheddar", "subcategoria": "Burger", "contieneModificadores": true, "zonaFranca": true, "localCentral": false, "imagen": "B1.jpg", "agregados": [] },
-  { "id": "B2", "nombre": "B2", "precio": 9600.0, "descripcion": "Queso Gouda, lechuga, tomate, cebolla morada y huevo frito", "subcategoria": "Burger", "contieneModificadores": true, "zonaFranca": true, "localCentral": false, "imagen": "B2.jpg", "agregados": [] },
+  {
+    "id": "B1 CHEDDAR",
+    "nombre": "B1 CHEDDAR",
+    "precio": 8200.0,
+    "descripcion": "Burguer y queso gouda o cheddar",
+    "subcategoria": "Burger",
+    "contieneModificadores": true,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "B1.jpg",
+    "agregados": [
+      {"nombre": "Extra Cheddar", "precio": 1000.0, "imagen": "extra_queso.jpg"},
+      {"nombre": "Tocino", "precio": 1500.0, "imagen": "default_agregado.jpg"},
+      {"nombre": "Huevo Frito", "precio": 1200.0, "imagen": "default_agregado.jpg"}
+    ]
+  },
+  {
+    "id": "B2",
+    "nombre": "B2",
+    "precio": 9600.0,
+    "descripcion": "Queso Gouda, lechuga, tomate, cebolla morada y huevo frito",
+    "subcategoria": "Burger",
+    "contieneModificadores": true,
+    "zonaFranca": true,
+    "localCentral": false,
+    "imagen": "B2.jpg",
+    "agregados": [
+      {"nombre": "Extra Queso Gouda", "precio": 1000.0, "imagen": "extra_queso.jpg"},
+      {"nombre": "Pepinillos", "precio": 800.0, "imagen": "default_agregado.jpg"}
+    ]
+  },
   { "id": "B3", "nombre": "B3", "precio": 10900.0, "descripcion": "Burger con queso cheddar, tocino, huevo frito, pepinillos y salsa BBQ", "subcategoria": "Burger", "contieneModificadores": false, "zonaFranca": true, "localCentral": false, "imagen": "B3.jpg", "agregados": [] },
   { "id": "B4", "nombre": "B4", "precio": 10400.0, "descripcion": "Burger con camarones al limón y palta trozada", "subcategoria": "Burger", "contieneModificadores": false, "zonaFranca": true, "localCentral": false, "imagen": "B4.jpg", "agregados": [] },
   {
@@ -9,11 +38,14 @@
       "precio": 9200.0,
       "descripcion": "BAGUETTE DE TOCINO + LECHUGA + TOMATE",
       "subcategoria": "Sandwich",
-      "contieneModificadores": false,
+      "contieneModificadores": true,
       "zonaFranca": true,
       "localCentral": false,
       "imagen": "S1.jpg",
-      "agregados": []
+      "agregados": [
+        {"nombre": "Extra Tocino", "precio": 1800.0, "imagen": "default_agregado.jpg"},
+        {"nombre": "Queso Gouda", "precio": 1000.0, "imagen": "extra_queso.jpg"}
+      ]
   },
   {
       "id": "K1",
