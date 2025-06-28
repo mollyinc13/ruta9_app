@@ -20,6 +20,7 @@ dependencies:
   provider: ^6.1.2 # Added line
   shimmer: ^3.0.0 # Added shimmer dependency
   flutter_native_splash: ^2.4.0 # Added for native splash screen
+  audioplayers: ^6.0.0 # Added for secret button sound
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +38,7 @@ flutter:
     - assets/images/products/ # Includes all subdirectories like burgers, sandwiches, snacks, bebidas, general
     - assets/images/products/burgers/
     - assets/images/agregados/ # For agregado images like extra_queso.jpg
+    - assets/audio/ # Added for audio assets
     # Individual file listing (like assets/images/logos/R9.png from original file) is also fine
     # but for directories, the trailing slash is important.
     # The original file had:
@@ -50,11 +52,12 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logos/R9.png"
+  image_path: "assets/images/logos/R9.png" # This configuration is already correct
 
 flutter_native_splash:
-  color: "#121212" # Corresponds to AppColors.primaryDark
+  color: "#000000" # Updated to black as per new instructions
   image: assets/images/logos/R9.png
   android: true
-  ios: true
-  web: false # Assuming web is not a target for this specific splash
+  ios: true # Assuming iOS splash is also desired
+  fullscreen: true # Added as per new instructions
+  web: false
