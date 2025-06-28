@@ -269,15 +269,12 @@ class _TotemKioskScreenState extends State<TotemKioskScreen> with SingleTickerPr
           textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         onPressed: cart.items.isEmpty ? null : () {
-          // TODO: Lógica para confirmar pedido en modo kiosco
-          // Podría navegar a una pantalla de resumen/pago simplificada
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pedido Confirmado (Placeholder)', style: TextStyle(fontSize: 18))),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CartScreen()),
           );
-          // Opcionalmente, limpiar el carrito después de confirmar
-          // cart.clearCart();
         },
-        child: Text('Confirmar Pedido (${cart.itemCount} items) - \$${cart.totalPrice.toStringAsFixed(0)}'),
+        child: Text('Ver Carrito y Pagar (${cart.itemCount} items) - \$${cart.totalPrice.toStringAsFixed(0)}'),
       ),
     );
   }

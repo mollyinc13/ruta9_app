@@ -1,5 +1,6 @@
 // lib/screens/checkout/checkout_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Added for SystemChrome
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../core/constants/colors.dart';
@@ -63,6 +64,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky); // Kiosk mode UI
+
     if (_deliveryOptions.isNotEmpty) {
       _selectedDeliveryOption = _deliveryOptions.first;
     }
@@ -70,6 +73,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _selectedPaymentMethod = _paymentMethods.first;
     }
   }
+
   @override
   void dispose() {
     _streetController.dispose();
@@ -77,6 +81,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _cityController.dispose();
     _postalCodeController.dispose();
     _instructionsController.dispose();
+
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge); // Restore system UI
+    // Consider if restoring orientations is always desired, similar to CartScreen
+    // SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
 
@@ -145,142 +153,158 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final double grandTotal = _calculateGrandTotal(cart);
 
-    return Scaffold(
-      appBar: AppBar( title: const Text('Confirmar Pedido'), ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // 1. Order Summary
-              Text('Resumen del Pedido', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Total a Pagar (Productos):', style: textTheme.titleMedium),
-                      Text( '\$${cart.totalPrice.toStringAsFixed(0)}', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
+    // Kiosk mode visual adjustments
+    const double kioskExtraFontSize = 4.0;
+    final TextStyle? titleLargeKiosk = textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: (textTheme.titleLarge?.fontSize ?? 20) + kioskExtraFontSize);
+    final TextStyle? titleMediumKiosk = textTheme.titleMedium?.copyWith(fontSize: (textTheme.titleMedium?.fontSize ?? 16) + kioskExtraFontSize - 2);
+    final TextStyle? bodyMediumKiosk = textTheme.bodyMedium?.copyWith(fontSize: (textTheme.bodyMedium?.fontSize ?? 14) + kioskExtraFontSize - 2);
+
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: () async => false, // Prevent back button exit in kiosk mode
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Confirmar Pedido', style: textTheme.headlineSmall?.copyWith(fontSize: (textTheme.headlineSmall?.fontSize ?? 24) + kioskExtraFontSize)),
+          automaticallyImplyLeading: false, // No back button in AppBar for kiosk mode
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0), // Increased padding
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                // 1. Order Summary
+                Text('Resumen del Pedido', style: titleLargeKiosk),
+                const SizedBox(height: 12), // Increased spacing
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0), // Increased padding
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Total a Pagar (Productos):', style: titleMediumKiosk),
+                        Text( '\$${cart.totalPrice.toStringAsFixed(0)}', style: titleMediumKiosk?.copyWith(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24.0),
+                const SizedBox(height: 28.0), // Increased spacing
 
-              // 2. Delivery Address
-              Text('Dirección de Envío', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12.0),
-              _buildTextFormField(controller: _streetController, labelText: 'Calle y Número', hintText: 'Ej: Av. Siempreviva 742'),
-              _buildTextFormField(controller: _apartmentController, labelText: 'Departamento, Casa, etc. (Opcional)', hintText: 'Ej: Depto 123, Casa B'),
-              _buildTextFormField(controller: _cityController, labelText: 'Ciudad / Comuna', hintText: 'Ej: Springfield'),
-              _buildTextFormField(controller: _postalCodeController, labelText: 'Código Postal (Opcional)', hintText: 'Ej: 1234567', keyboardType: TextInputType.number),
-              _buildTextFormField(controller: _instructionsController, labelText: 'Instrucciones de Entrega (Opcional)', hintText: 'Ej: Dejar en conserjería, llamar al llegar', maxLines: 3),
-              const SizedBox(height: 24.0),
+                // 2. Delivery Address
+                Text('Dirección de Envío', style: titleLargeKiosk),
+                const SizedBox(height: 16.0), // Increased spacing
+                _buildTextFormField(controller: _streetController, labelText: 'Calle y Número', hintText: 'Ej: Av. Siempreviva 742', textStyle: bodyMediumKiosk),
+                _buildTextFormField(controller: _apartmentController, labelText: 'Departamento, Casa, etc. (Opcional)', hintText: 'Ej: Depto 123, Casa B', textStyle: bodyMediumKiosk),
+                _buildTextFormField(controller: _cityController, labelText: 'Ciudad / Comuna', hintText: 'Ej: Springfield', textStyle: bodyMediumKiosk),
+                _buildTextFormField(controller: _postalCodeController, labelText: 'Código Postal (Opcional)', hintText: 'Ej: 1234567', keyboardType: TextInputType.number, textStyle: bodyMediumKiosk),
+                _buildTextFormField(controller: _instructionsController, labelText: 'Instrucciones de Entrega (Opcional)', hintText: 'Ej: Dejar en conserjería, llamar al llegar', maxLines: 3, textStyle: bodyMediumKiosk),
+                const SizedBox(height: 28.0),
 
-              // 3. Delivery Options Section
-              Text('Opciones de Envío', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8.0),
-              Card(
-                child: Column(
-                  children: _deliveryOptions.map((option) {
-                    return RadioListTile<DeliveryOption>(
-                      title: Text(option.title, style: textTheme.titleMedium),
-                      subtitle: Text('${option.subtitle} (+\$${option.price.toStringAsFixed(0)})', style: textTheme.bodyMedium),
-                      value: option,
-                      groupValue: _selectedDeliveryOption,
-                      onChanged: (DeliveryOption? value) {
-                        setState(() { _selectedDeliveryOption = value; });
-                      },
-                      activeColor: colorScheme.primary,
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 24.0),
-
-              // 4. Payment Methods Section
-              Text('Método de Pago', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8.0),
-              Card(
-                child: Column(
-                  children: _paymentMethods.map((method) {
-                    return RadioListTile<PaymentMethod>(
-                      title: Text(method.title, style: textTheme.titleMedium),
-                      secondary: Icon(method.icon, color: AppColors.textMuted, size: 28),
-                      value: method,
-                      groupValue: _selectedPaymentMethod,
-                      onChanged: (PaymentMethod? value) {
-                        setState(() { _selectedPaymentMethod = value; });
-                      },
-                      activeColor: colorScheme.primary,
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 24.0),
-
-              // --- 5. Final Order Review ---
-              Text('Revisión Final', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8.0),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                // 3. Delivery Options Section
+                Text('Opciones de Envío', style: titleLargeKiosk),
+                const SizedBox(height: 12.0),
+                Card(
+                  elevation: 2,
                   child: Column(
-                    children: [
-                      _buildSummaryRow(context, 'Subtotal Productos:', '\$${cart.totalPrice.toStringAsFixed(0)}'),
-                      const SizedBox(height: 8),
-                      _buildSummaryRow(context, 'Costo de Envío:', '+\$${(_selectedDeliveryOption?.price ?? 0.0).toStringAsFixed(0)}'),
-                      const Divider(height: 20, thickness: 1),
-                      _buildSummaryRow(
-                        context,
-                        'Total General:',
-                        '\$${grandTotal.toStringAsFixed(0)}',
-                        isTotal: true
-                      ),
-                    ],
+                    children: _deliveryOptions.map((option) {
+                      return RadioListTile<DeliveryOption>(
+                        title: Text(option.title, style: titleMediumKiosk),
+                        subtitle: Text('${option.subtitle} (+\$${option.price.toStringAsFixed(0)})', style: bodyMediumKiosk),
+                        value: option,
+                        groupValue: _selectedDeliveryOption,
+                        onChanged: (DeliveryOption? value) {
+                          setState(() { _selectedDeliveryOption = value; });
+                        },
+                        activeColor: colorScheme.primary,
+                      );
+                    }).toList(),
                   ),
                 ),
-              ),
-              // --- End Final Order Review ---
-              const SizedBox(height: 32.0),
+                const SizedBox(height: 28.0),
 
-              // --- 6. Confirm and Pay Button ---
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                // 4. Payment Methods Section
+                Text('Método de Pago', style: titleLargeKiosk),
+                const SizedBox(height: 12.0),
+                Card(
+                  elevation: 2,
+                  child: Column(
+                    children: _paymentMethods.map((method) {
+                      return RadioListTile<PaymentMethod>(
+                        title: Text(method.title, style: titleMediumKiosk),
+                        secondary: Icon(method.icon, color: AppColors.textMuted, size: 32), // Increased icon size
+                        value: method,
+                        groupValue: _selectedPaymentMethod,
+                        onChanged: (PaymentMethod? value) {
+                          setState(() { _selectedPaymentMethod = value; });
+                        },
+                        activeColor: colorScheme.primary,
+                      );
+                    }).toList(),
                   ),
-                  onPressed: cart.itemsList.isEmpty ? null : () => _handleConfirmOrder(cart),
-                  child: const Text('CONFIRMAR Y PAGAR (SIMULADO)'),
                 ),
-              ),
-              // --- End Confirm and Pay Button ---
-            ],
+                const SizedBox(height: 28.0),
+
+                // --- 5. Final Order Review ---
+                Text('Revisión Final', style: titleLargeKiosk),
+                const SizedBox(height: 12.0),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0), // Increased padding
+                    child: Column(
+                      children: [
+                        _buildSummaryRow(context, 'Subtotal Productos:', '\$${cart.totalPrice.toStringAsFixed(0)}', textStyle: titleMediumKiosk),
+                        const SizedBox(height: 10),
+                        _buildSummaryRow(context, 'Costo de Envío:', '+\$${(_selectedDeliveryOption?.price ?? 0.0).toStringAsFixed(0)}', textStyle: titleMediumKiosk),
+                        const Divider(height: 24, thickness: 1), // Increased spacing
+                        _buildSummaryRow(
+                          context,
+                          'Total General:',
+                          '\$${grandTotal.toStringAsFixed(0)}',
+                          isTotal: true,
+                          textStyle: titleLargeKiosk?.copyWith(color: colorScheme.secondary)
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 36.0), // Increased spacing
+
+                // --- 6. Confirm and Pay Button ---
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0), // Increased padding for taller button
+                       textStyle: textTheme.labelLarge?.copyWith(fontSize: (textTheme.labelLarge?.fontSize ?? 14) + kioskExtraFontSize + 4, fontWeight: FontWeight.bold), // Increased font size
+                    ),
+                    onPressed: cart.itemsList.isEmpty ? null : () => _handleConfirmOrder(cart),
+                    child: const Text('CONFIRMAR Y PAGAR (SIMULADO)'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSummaryRow(BuildContext context, String label, String value, {bool isTotal = false}) {
+  Widget _buildSummaryRow(BuildContext context, String label, String value, {bool isTotal = false, TextStyle? textStyle}) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final defaultStyle = isTotal ? textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold) : textTheme.titleMedium;
+    final valueStyle = isTotal
+            ? textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.secondary)
+            : textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: isTotal ? textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold) : textTheme.titleMedium),
-        Text(
-          value,
-          style: isTotal
-            ? textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.secondary)
-            : textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)
-        ),
+        Text(label, style: textStyle ?? defaultStyle),
+        Text(value, style: textStyle ?? valueStyle),
       ],
     );
   }
@@ -291,15 +315,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     String? hintText,
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
+    TextStyle? textStyle, // Added textStyle for kiosk
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0), // Increased padding
       child: TextFormField(
         controller: controller,
+        style: textStyle, // Apply kiosk text style
         decoration: InputDecoration(
           labelText: labelText,
+          labelStyle: textStyle, // Apply to label
           hintText: hintText,
-          border: const OutlineInputBorder(),
+          hintStyle: textStyle?.copyWith(color: AppColors.textMuted), // Apply to hint
+          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))), // Ensure consistent border
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16), // Adjust padding
         ),
         keyboardType: keyboardType,
         maxLines: maxLines,
