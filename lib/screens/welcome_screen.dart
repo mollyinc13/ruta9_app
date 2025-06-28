@@ -4,8 +4,9 @@ import 'package:flutter/services.dart'; // Required for PlatformException
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:audioplayers/audioplayers.dart'; // Added audioplayers
 import 'main_app_shell.dart';
-import 'menuruta9central.dart';
+import 'totem_kiosk_screen.dart'; // Added import for TotemKioskScreen
 
 // Helper class for Fade Page Route (can be in its own file or here for simplicity)
 class FadeRoute extends PageRouteBuilder {
@@ -40,7 +41,9 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  late VideoPlayerController _controller;
+  late VideoPlayerController _videoController;
+  final AudioPlayer _audioPlayer = AudioPlayer(); // Added AudioPlayer instance
+  final TextEditingController _passwordController = TextEditingController(); // Controller for password input
   final String instagramUrl = 'https://www.instagram.com/ruta9.burgers/?hl=es';
   final String whatsappUrl = 'https://api.whatsapp.com/send/?phone=56957636076&text&type=phone_number&app_absent=0';
   final String mollyIncUrl = 'https://mollyinc.cl';
@@ -48,10 +51,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.asset("assets/videos/welcome.mp4")
+    _videoController = VideoPlayerController.asset("assets/videos/welcome.mp4")
       ..initialize().then((_) {
-        _controller.setLooping(true);
-        _controller.play();
+        _videoController.setLooping(true);
+        _videoController.play();
         if (mounted) {
           setState(() {});
         }
@@ -60,11 +63,82 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _videoController.dispose();
+    _audioPlayer.dispose(); // Dispose AudioPlayer
+    _passwordController.dispose(); // Dispose TextEditingController
     super.dispose();
   }
 
-  Future<void> _openUrl(String url) async {
+  Future<void> _playSecretSound() async {
+    try {
+      // Assuming you have 'exclamation.mp3' in 'assets/audio/'
+      // The path for AssetSource should be relative to 'assets/' folder
+      await _audioPlayer.play(AssetSource('audio/exclamation.mp3'));
+    } catch (e) {
+      debugPrint("Error playing sound: $e");
+      // Handle error, e.g., show a generic error message or log it
+    }
+  }
+
+  void _showPasswordDialog() {
+    _passwordController.clear(); // Clear previous input
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Acceso Restringido'),
+          content: TextFormField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              hintText: 'Ingrese la clave',
+              icon: Icon(Icons.lock_outline),
+            ),
+            autofocus: true,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Ingresar'),
+              onPressed: () {
+                _validatePasswordAndNavigate();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _validatePasswordAndNavigate() {
+    const String correctPassword = 'ruta 9.9196';
+    if (_passwordController.text == correctPassword) {
+      Navigator.of(context).pop(); // Close the dialog
+      Navigator.pushReplacement( // Navigate to Kiosk screen
+        context,
+        MaterialPageRoute(builder: (context) => const TotemKioskScreen()),
+      );
+    } else {
+      Navigator.of(context).pop(); // Close the dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Clave incorrecta.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  // Future<void> _openUrl(String url) async { // This line was part of the duplicated methods, ensure it's correctly placed or removed if logic is already above.
+  // For now, assuming the _openUrl, _animatedButton, _iconButton, and build method below are the correct ones to keep.
+  // The duplicated initState and dispose that used _controller are removed by this diff not including them after the corrected section.
+
+  Future<void> _openUrl(String url) async { // KEEPING THIS _openUrl and below
     final uri = Uri.parse(url);
     String errorMessage = 'No se pudo abrir el enlace.';
     try {
@@ -137,9 +211,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         body: Stack(
           children: [
             Positioned.fill(
-            child: _controller.value.isInitialized
-                ? FittedBox( fit: BoxFit.cover, child: SizedBox( width: _controller.value.size.width, height: _controller.value.size.height, child: VideoPlayer(_controller),),)
+            child: _videoController.value.isInitialized // Corrected to _videoController
+                ? FittedBox( fit: BoxFit.cover, child: SizedBox( width: _videoController.value.size.width, height: _videoController.value.size.height, child: VideoPlayer(_videoController),),) // Corrected to _videoController
                 : const Center(child: CircularProgressIndicator()),
+          ),
+          Positioned( // Botón secreto
+            top: 30,
+            left: 20,
+            child: IconButton(
+              icon: const Icon(Icons.priority_high_rounded, color: Colors.white70),
+              iconSize: 24.0, // Tamaño similar o más pequeño que los de redes sociales
+              tooltip: 'Acceso Kiosco',
+              onPressed: () {
+                _playSecretSound();
+                _showPasswordDialog();
+              },
+            ),
           ),
           Positioned(
             top: 30, right: 20,
@@ -160,7 +247,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 _animatedButton(
                   text: "RUTA 9 CENTRAL",
                   onPressed: () {
-                    Navigator.pushReplacement(context, FadeRoute(page: const MenuRuta9CentralScreen())); // MODIFIED
+                    Navigator.pushReplacement(context, FadeRoute(page: const MainAppShell())); // MODIFIED
                   },
                 ),
                 const SizedBox(height: 16),
