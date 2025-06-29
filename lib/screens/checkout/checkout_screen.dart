@@ -1,28 +1,16 @@
 // lib/screens/checkout/checkout_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Added for SystemChrome
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // For pre-filling user name
 import '../../providers/cart_provider.dart';
 import '../../core/constants/colors.dart';
-// Import for OrderConfirmationScreen (will be created later)
-// For now, this import is commented out, navigation will be placeholder.
 import 'order_confirmation_screen.dart';
-import '../main_app_shell.dart'; // For navigating back to home
+// import '../main_app_shell.dart'; // Not needed if navigating to OrderConfirmationScreen then that handles next step
+import '../../services/onepay_service.dart'; // Import OnePayService
 
-// DeliveryOption and PaymentMethod classes remain the same
-class DeliveryOption {
-  final String id;
-  final String title;
-  final String subtitle;
-  final double price;
+// Removed DeliveryOption class as it's no longer used
 
-  const DeliveryOption({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.price,
-  });
-}
 class PaymentMethod {
   final String id;
   final String title;
@@ -54,14 +42,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // final _instructionsController = TextEditingController();
 
   // Removed delivery options
-  // final List<DeliveryOption> _deliveryOptions = const [...];
-  // DeliveryOption? _selectedDeliveryOption;
 
-  // Payment methods can remain, assuming they are applicable for pickup
+  final OnePayService _onePayService = OnePayService(); // Instance of OnePayService
+  bool _isProcessingPayment = false; // State for loading indicator during payment
+
+  // Updated payment methods to include Onepay
   final List<PaymentMethod> _paymentMethods = const [
+    PaymentMethod(id: 'onepay_transbank', title: 'Onepay (Transbank)', icon: Icons.payment), // Placeholder icon, replace with Onepay logo if available
     PaymentMethod(id: 'cash_pickup', title: 'Efectivo en Local', icon: Icons.money_outlined),
     PaymentMethod(id: 'card_pickup', title: 'Tarjeta en Local (Simulado)', icon: Icons.credit_card_outlined),
-    // Add other relevant pickup payment methods if any
   ];
   PaymentMethod? _selectedPaymentMethod;
 
@@ -99,58 +88,92 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return cart.totalPrice; // Only product total
   }
 
-  void _handleConfirmOrder(CartProvider cart) {
-    if (_formKey.currentState!.validate()) {
-      print('Order Confirmed for Pickup!');
-      print('Customer Name: ${_nameController.text}');
-      print('Customer Phone: ${_phoneController.text}');
-      print('Payment Method: ${_selectedPaymentMethod?.title}');
-      print('Grand Total: ${_calculateGrandTotal(cart)}');
-
-      // TODO: Save order to Firestore with pickup details
-
-      // Clear cart
-      // Use context.read<CartProvider>() if you need to call methods on a provider
-      // from within a callback where the context might be tricky,
-      // or pass the cart provider instance directly as done here.
-      cart.clearCart();
-
-      // Show dialog first, then navigate.
-      // Capture the context before showDialog if it's inside an async gap
-      // For this case, it's synchronous before the navigation so current context is fine.
-      // Remove the direct navigation to MainAppShell.
-      // The AlertDialog's OK button will handle navigation.
-
-      showDialog(
-          context: context, // Use the CheckoutScreen's context
-          barrierDismissible: false,
-          builder: (BuildContext dialogCtx) {
-            return AlertDialog(
-              title: const Text('¡Pedido Confirmado!'),
-              content: const Text('Gracias por tu compra. Tu pedido está siendo procesado.'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(dialogCtx).pop(); // Dismiss dialog
-                    // NOW navigate to OrderConfirmationScreen, clearing stack
-                    Navigator.of(context).pushAndRemoveUntil( // Use CheckoutScreen's context for navigation
-                      MaterialPageRoute(builder: (context) => const OrderConfirmationScreen()),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
-                ),
-              ],
-            );
-          },
-        );
-    } else {
+  Future<void> _handleConfirmOrder(CartProvider cart) async { // Made async
+    if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, completa los campos requeridos.')),
       );
+      return;
+    }
+
+    if (_selectedPaymentMethod?.id == 'onepay_transbank') {
+      setState(() { _isProcessingPayment = true; });
+
+      // **IMPORTANTE:** En una app real, aquí llamarías a tu backend para crear
+      // la transacción Onepay y obtener 'ott' y 'externalUniqueNumber'.
+      // Por ahora, usaremos valores dummy para simulación.
+      const String dummyOtt = "dummy_ott_12345";
+      final String dummyExternalUniqueNumber = "ruta9_kiosk_${DateTime.now().millisecondsSinceEpoch}";
+
+      try {
+        final paymentResult = await _onePayService.startAndroidPayment(
+          ott: dummyOtt,
+          externalUniqueNumber: dummyExternalUniqueNumber,
+        );
+
+        setState(() { _isProcessingPayment = false; });
+
+        if (paymentResult['status'] == 'SUCCESS') {
+          // TODO: Aquí deberías verificar el resultado con tu backend usando el externalUniqueNumber
+          // y el transactionId de Onepay (si el SDK lo devuelve o tu backend lo tiene).
+          // Por ahora, asumimos éxito si el SDK/platform channel dice SUCCESS.
+
+          _finalizeOrder(cart, paymentResult);
+
+        } else {
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Pago Onepay fallido o cancelado: ${paymentResult['message'] ?? 'Error desconocido'}')),
+          );
+        }
+      } catch (e) {
+        setState(() { _isProcessingPayment = false; });
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error procesando pago Onepay: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Lógica para otros métodos de pago (Efectivo, Tarjeta simulada)
+      _finalizeOrder(cart, {'paymentMethod': _selectedPaymentMethod?.title});
     }
   }
 
+  void _finalizeOrder(CartProvider cart, Map<String, dynamic> paymentDetails) {
+    // Esta función ahora es llamada tanto por Onepay exitoso como por otros métodos.
+    debugPrint('Order Confirmed for Pickup!');
+    debugPrint('Customer Name: ${_nameController.text}');
+    debugPrint('Customer Phone: ${_phoneController.text}');
+    debugPrint('Payment Details: $paymentDetails');
+    debugPrint('Grand Total: ${_calculateGrandTotal(cart)}');
+
+    // TODO: Save order to Firestore with pickup details and paymentDetails
+
+    cart.clearCart();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogCtx) {
+        return AlertDialog(
+          title: const Text('¡Pedido Confirmado!'),
+          content: const Text('Gracias por tu compra. Tu pedido está siendo procesado.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(dialogCtx).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const OrderConfirmationScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -280,11 +303,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0), // Increased padding for taller button
-                       textStyle: textTheme.labelLarge?.copyWith(fontSize: (textTheme.labelLarge?.fontSize ?? 14) + kioskExtraFontSize + 4, fontWeight: FontWeight.bold), // Increased font size
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      textStyle: textTheme.labelLarge?.copyWith(fontSize: (textTheme.labelLarge?.fontSize ?? 14) + kioskExtraFontSize + 4, fontWeight: FontWeight.bold),
                     ),
-                    onPressed: cart.itemsList.isEmpty ? null : () => _handleConfirmOrder(cart),
-                    child: const Text('CONFIRMAR Y PAGAR (SIMULADO)'),
+                    onPressed: (cart.itemsList.isEmpty || _isProcessingPayment) ? null : () => _handleConfirmOrder(cart),
+                    child: _isProcessingPayment
+                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3.0))
+                        : const Text('CONFIRMAR Y PAGAR'), // Texto ajustado
                   ),
                 ),
               ],
