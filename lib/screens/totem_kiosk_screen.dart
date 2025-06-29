@@ -8,6 +8,7 @@ import '../views/product/product_detail_dialog.dart'; // Asumiendo que se reutil
 import '../widgets/product_card.dart'; // Asumiendo que se reutilizará o adaptará
 import '../core/constants/colors.dart'; // Para colores consistentes
 import 'package:collection/collection.dart'; // For groupBy
+import '../views/cart/cart_screen.dart'; // Added import for CartScreen
 
 class TotemKioskScreen extends StatefulWidget {
   const TotemKioskScreen({super.key});
