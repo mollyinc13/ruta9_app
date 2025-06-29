@@ -32,18 +32,19 @@ class OrderConfirmationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                '¡Gracias por tu pedido!',
+                '¡Tu pedido fue recibido!', // Updated Title
                 style: textTheme.headlineMedium?.copyWith(color: AppColors.textLight),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               Text(
-                'Tu orden ha sido recibida y está siendo procesada.', // Placeholder order ID
-                // 'Tu orden #12345 ha sido recibida y está siendo procesada.', // Example with order ID
+                'Te esperamos en el local para retirarlo.', // Updated Subtitle
                 style: textTheme.titleMedium?.copyWith(color: AppColors.textMuted),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
+              // Opcional: Añadir botón "Ver mis pedidos" si esa pantalla existiera.
+              // Por ahora, solo "Volver al Inicio".
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),

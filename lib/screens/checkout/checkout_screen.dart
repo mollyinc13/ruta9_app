@@ -43,32 +43,42 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _streetController = TextEditingController();
-  final _apartmentController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _postalCodeController = TextEditingController();
-  final _instructionsController = TextEditingController();
+  // Controllers for user info (relevant for pickup)
+  final _nameController = TextEditingController(); // Added for customer name
+  final _phoneController = TextEditingController(); // Added for customer phone (optional)
+  // Removed delivery-specific controllers:
+  // final _streetController = TextEditingController();
+  // final _apartmentController = TextEditingController();
+  // final _cityController = TextEditingController();
+  // final _postalCodeController = TextEditingController();
+  // final _instructionsController = TextEditingController();
 
-  final List<DeliveryOption> _deliveryOptions = const [
-    DeliveryOption(id: 'standard', title: 'Envío Standard', subtitle: 'Entrega en 3-5 días hábiles', price: 3500),
-    DeliveryOption(id: 'express', title: 'Envío Express', subtitle: 'Entrega en 1-2 días hábiles', price: 7000),
-  ];
-  DeliveryOption? _selectedDeliveryOption;
+  // Removed delivery options
+  // final List<DeliveryOption> _deliveryOptions = const [...];
+  // DeliveryOption? _selectedDeliveryOption;
 
+  // Payment methods can remain, assuming they are applicable for pickup
   final List<PaymentMethod> _paymentMethods = const [
-    PaymentMethod(id: 'cash', title: 'Efectivo al Entregar', icon: Icons.money_outlined),
-    PaymentMethod(id: 'card_mock', title: 'Tarjeta de Crédito/Débito (Simulado)', icon: Icons.credit_card_outlined),
+    PaymentMethod(id: 'cash_pickup', title: 'Efectivo en Local', icon: Icons.money_outlined),
+    PaymentMethod(id: 'card_pickup', title: 'Tarjeta en Local (Simulado)', icon: Icons.credit_card_outlined),
+    // Add other relevant pickup payment methods if any
   ];
   PaymentMethod? _selectedPaymentMethod;
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky); // Kiosk mode UI
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-    if (_deliveryOptions.isNotEmpty) {
-      _selectedDeliveryOption = _deliveryOptions.first;
+    // Pre-fill name if user is logged in
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      _nameController.text = currentUser.displayName ?? '';
+      // Podríamos también intentar pre-rellenar el teléfono si lo tuviéramos en el perfil de Firebase
+      // o si lo guardamos en Firestore y lo recuperamos aquí.
+      // Por ahora, solo el nombre.
     }
+
     if (_paymentMethods.isNotEmpty) {
       _selectedPaymentMethod = _paymentMethods.first;
     }
@@ -76,32 +86,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   void dispose() {
-    _streetController.dispose();
-    _apartmentController.dispose();
-    _cityController.dispose();
-    _postalCodeController.dispose();
-    _instructionsController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
+    // Removed disposal of delivery-specific controllers
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge); // Restore system UI
-    // Consider if restoring orientations is always desired, similar to CartScreen
-    // SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
-  // Helper to calculate grand total
+  // Updated to reflect no delivery fee
   double _calculateGrandTotal(CartProvider cart) {
-    double deliveryFee = _selectedDeliveryOption?.price ?? 0.0;
-    return cart.totalPrice + deliveryFee;
+    return cart.totalPrice; // Only product total
   }
 
   void _handleConfirmOrder(CartProvider cart) {
-    if (_formKey.currentState!.validate()) { // Basic form validation
-      // In a real app: process payment, save order to backend
-      print('Order Confirmed!');
-      print('Address: ${_streetController.text}, ${_cityController.text}');
-      print('Delivery: ${_selectedDeliveryOption?.title}');
-      print('Payment: ${_selectedPaymentMethod?.title}');
+    if (_formKey.currentState!.validate()) {
+      print('Order Confirmed for Pickup!');
+      print('Customer Name: ${_nameController.text}');
+      print('Customer Phone: ${_phoneController.text}');
+      print('Payment Method: ${_selectedPaymentMethod?.title}');
       print('Grand Total: ${_calculateGrandTotal(cart)}');
+
+      // TODO: Save order to Firestore with pickup details
 
       // Clear cart
       // Use context.read<CartProvider>() if you need to call methods on a provider
@@ -192,40 +198,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(height: 28.0), // Increased spacing
 
-                // 2. Delivery Address
-                Text('Dirección de Envío', style: titleLargeKiosk),
-                const SizedBox(height: 16.0), // Increased spacing
-                _buildTextFormField(controller: _streetController, labelText: 'Calle y Número', hintText: 'Ej: Av. Siempreviva 742', textStyle: bodyMediumKiosk),
-                _buildTextFormField(controller: _apartmentController, labelText: 'Departamento, Casa, etc. (Opcional)', hintText: 'Ej: Depto 123, Casa B', textStyle: bodyMediumKiosk),
-                _buildTextFormField(controller: _cityController, labelText: 'Ciudad / Comuna', hintText: 'Ej: Springfield', textStyle: bodyMediumKiosk),
-                _buildTextFormField(controller: _postalCodeController, labelText: 'Código Postal (Opcional)', hintText: 'Ej: 1234567', keyboardType: TextInputType.number, textStyle: bodyMediumKiosk),
-                _buildTextFormField(controller: _instructionsController, labelText: 'Instrucciones de Entrega (Opcional)', hintText: 'Ej: Dejar en conserjería, llamar al llegar', maxLines: 3, textStyle: bodyMediumKiosk),
-                const SizedBox(height: 28.0),
-
-                // 3. Delivery Options Section
-                Text('Opciones de Envío', style: titleLargeKiosk),
-                const SizedBox(height: 12.0),
-                Card(
-                  elevation: 2,
-                  child: Column(
-                    children: _deliveryOptions.map((option) {
-                      return RadioListTile<DeliveryOption>(
-                        title: Text(option.title, style: titleMediumKiosk),
-                        subtitle: Text('${option.subtitle} (+\$${option.price.toStringAsFixed(0)})', style: bodyMediumKiosk),
-                        value: option,
-                        groupValue: _selectedDeliveryOption,
-                        onChanged: (DeliveryOption? value) {
-                          setState(() { _selectedDeliveryOption = value; });
-                        },
-                        activeColor: colorScheme.primary,
-                      );
-                    }).toList(),
-                  ),
+                // 2. Customer Information for Pickup
+                Text('Información para Retiro', style: titleLargeKiosk),
+                const SizedBox(height: 16.0),
+                _buildTextFormField(
+                  controller: _nameController,
+                  labelText: 'Nombre de quien retira',
+                  hintText: 'Ej: Juan Pérez',
+                  textStyle: bodyMediumKiosk,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, ingresa un nombre';
+                    }
+                    return null;
+                  },
+                ),
+                _buildTextFormField(
+                  controller: _phoneController,
+                  labelText: 'Teléfono de contacto (Opcional)',
+                  hintText: 'Ej: 912345678',
+                  keyboardType: TextInputType.phone,
+                  textStyle: bodyMediumKiosk
                 ),
                 const SizedBox(height: 28.0),
 
-                // 4. Payment Methods Section
-                Text('Método de Pago', style: titleLargeKiosk),
+                // Delivery Options Section - REMOVED
+                // Text('Opciones de Envío', style: titleLargeKiosk),
+                // ... Card with delivery options ...
+                // const SizedBox(height: 28.0),
+
+                // 4. Payment Methods Section (Adjusted title if needed)
+                Text('Método de Pago en Local', style: titleLargeKiosk),
                 const SizedBox(height: 12.0),
                 Card(
                   elevation: 2,
@@ -256,9 +259,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Column(
                       children: [
                         _buildSummaryRow(context, 'Subtotal Productos:', '\$${cart.totalPrice.toStringAsFixed(0)}', textStyle: titleMediumKiosk),
-                        const SizedBox(height: 10),
-                        _buildSummaryRow(context, 'Costo de Envío:', '+\$${(_selectedDeliveryOption?.price ?? 0.0).toStringAsFixed(0)}', textStyle: titleMediumKiosk),
-                        const Divider(height: 24, thickness: 1), // Increased spacing
+                        // const SizedBox(height: 10), // Spacing for delivery cost, removed
+                        // _buildSummaryRow(context, 'Costo de Envío:', '+\$${(_selectedDeliveryOption?.price ?? 0.0).toStringAsFixed(0)}', textStyle: titleMediumKiosk), // Delivery cost removed
+                        const Divider(height: 24, thickness: 1),
                         _buildSummaryRow(
                           context,
                           'Total General:',
