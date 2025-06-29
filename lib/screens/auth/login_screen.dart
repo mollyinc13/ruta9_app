@@ -1,108 +1,146 @@
-// lib/screens/auth/login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../core/constants/colors.dart'; // For AppColors if needed for specific styling
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:ruta9_app/screens/main_app_shell.dart'; // Para navegar después del login
+import 'package:ruta9_app/services/firestore_service.dart'; // Para guardar usuario en Firestore
+import 'package:ruta9_app/core/constants/colors.dart'; // Para colores
+// Asegúrate que FontAwesomeIcons esté disponible si decides usarlo para el logo de Google
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class LoginScreen extends StatelessWidget {
+
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isSigningIn = false;
+  final FirestoreService _firestoreService = FirestoreService();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+
+  Future<void> _signInWithGoogle() async {
+    if (_isSigningIn) return;
+    setState(() {
+      _isSigningIn = true;
+    });
+
+    try {
+      // Iniciar el proceso de Google Sign-In
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // El usuario canceló el flujo de login
+        if (mounted) setState(() { _isSigningIn = false; });
+        return;
+      }
+
+      // Obtener los detalles de autenticación de la cuenta de Google
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Crear una credencial para Firebase
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Iniciar sesión en Firebase con la credencial
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        // Guardar/Actualizar usuario en Firestore
+        await _firestoreService.saveUser(user);
+
+        if (mounted) {
+          // Navegar a la pantalla principal
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const MainAppShell()),
+            (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
+          );
+        }
+      } else {
+        // No se pudo obtener el usuario de Firebase
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se pudo iniciar sesión con Google.')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error en signInWithGoogle: $e");
+      // Si el error es por network, google_sign_in a veces lanza PlatformException
+      // con código 'network_error'.
+      String errorMessage = 'Error al iniciar sesión. Intenta de nuevo.';
+      if (e is FirebaseException) {
+        errorMessage = e.message ?? errorMessage;
+      } else if (e.toString().contains('network_error')) { // Heurística para error de red de google_sign_in
+        errorMessage = 'Error de red. Verifica tu conexión e intenta de nuevo.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningIn = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      // Potentially an AppBar if needed, or keep it minimal
-      // appBar: AppBar(
-      //   title: const Text('Iniciar Sesión'),
-      //   elevation: 0,
-      //   backgroundColor: Colors.transparent, // Or from theme
-      // ),
-      backgroundColor: AppColors.primaryDark, // Match the app's dark theme background
+      backgroundColor: AppColors.primaryDark,
       body: Center(
-        child: SingleChildScrollView( // In case content overflows on small screens
+        child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              // App Logo
               Image.asset(
-                'assets/images/logos/R9.png',
-                height: 100, // Adjust size as needed
-                // width: 100,
+                'assets/images/logos/R9.png', // Logo de la app
+                height: 120,
               ),
-              const SizedBox(height: 24.0),
-
-              // Welcome Message
+              const SizedBox(height: 40),
               Text(
-                'Bienvenido a Ruta9',
+                'Bienvenido a Ruta9 App',
+                style: textTheme.headlineSmall?.copyWith(color: AppColors.textLight),
                 textAlign: TextAlign.center,
-                style: textTheme.headlineMedium?.copyWith(color: AppColors.textLight),
               ),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 10),
               Text(
-                'Inicia sesión para continuar',
-                textAlign: TextAlign.center,
+                'Ingresa para continuar y realizar tus pedidos para retiro en local.',
                 style: textTheme.titleMedium?.copyWith(color: AppColors.textMuted),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48.0),
-
-              // Sign in with Google Button
-              ElevatedButton.icon(
-                icon: const FaIcon(FontAwesomeIcons.google, color: Colors.white, size: 20),
-                label: Text(
-                  'Iniciar Sesión con Google',
-                  style: textTheme.labelLarge?.copyWith(color: Colors.white, fontSize: 16),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryRed, // Or a Google-like blue: Color(0xFF4285F4)
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  elevation: 2,
-                ),
-                onPressed: () {
-                  // Placeholder action for Google Sign-In
-                  print('Google Sign-In button pressed (Not Implemented)');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Funcionalidad de inicio de sesión con Google (pendiente).'),
-                      duration: Duration(seconds: 2),
+              const SizedBox(height: 60),
+              _isSigningIn
+                  ? const CircularProgressIndicator(color: AppColors.primaryRed)
+                  : ElevatedButton.icon(
+                      // Si no tienes 'assets/images/logos/google_logo.png', puedes usar un Icon:
+                      // icon: const Icon(FontAwesomeIcons.google, color: Colors.red), // Ejemplo con FontAwesome
+                      icon: Image.asset('assets/images/logos/google_logo.png', height: 22.0, width: 22.0),
+                      label: const Text('Ingresar con Google'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black87,
+                        minimumSize: const Size(double.infinity, 50),
+                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        )
+                      ),
+                      onPressed: _signInWithGoogle,
                     ),
-                  );
-                  // In a real app, this would trigger the Google Sign-In flow
-                  // and on success, navigate to the main app or profile screen.
-                  // For now, maybe pop back if shown as a dialog/modal, or do nothing.
-                  // If LoginScreen is a full page, it might navigate on success.
-                  // Navigator.of(context).pop(); // Example if presented modally
-                },
-              ),
-              const SizedBox(height: 24.0),
-
-              // Optional: "Or sign in with email" or other methods
-              // Text(
-              //   'O',
-              //   textAlign: TextAlign.center,
-              //   style: textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
-              // ),
-              // const SizedBox(height: 16.0),
-              // Placeholder for email/password login if ever needed
-
-              // Optional: Skip login / Continue as guest
-              // TextButton(
-              //   onPressed: () {
-              //     // Navigate to main app as guest or pop
-              //     print('Skip login pressed');
-              //     Navigator.of(context).pop(); // Example
-              //   },
-              //   child: Text(
-              //     'Continuar como invitado',
-              //     style: textTheme.bodyMedium?.copyWith(color: AppColors.primaryRed),
-              //   ),
-              // ),
             ],
           ),
         ),

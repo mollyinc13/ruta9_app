@@ -8,6 +8,7 @@ import '../views/product/product_detail_dialog.dart'; // Asumiendo que se reutil
 import '../widgets/product_card.dart'; // Asumiendo que se reutilizará o adaptará
 import '../core/constants/colors.dart'; // Para colores consistentes
 import 'package:collection/collection.dart'; // For groupBy
+import '../views/cart/cart_screen.dart'; // Added import for CartScreen
 
 class TotemKioskScreen extends StatefulWidget {
   const TotemKioskScreen({super.key});
@@ -269,15 +270,12 @@ class _TotemKioskScreenState extends State<TotemKioskScreen> with SingleTickerPr
           textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         onPressed: cart.items.isEmpty ? null : () {
-          // TODO: Lógica para confirmar pedido en modo kiosco
-          // Podría navegar a una pantalla de resumen/pago simplificada
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pedido Confirmado (Placeholder)', style: TextStyle(fontSize: 18))),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CartScreen()),
           );
-          // Opcionalmente, limpiar el carrito después de confirmar
-          // cart.clearCart();
         },
-        child: Text('Confirmar Pedido (${cart.itemCount} items) - \$${cart.totalPrice.toStringAsFixed(0)}'),
+        child: Text('Ver Carrito y Pagar (${cart.itemCount} items) - \$${cart.totalPrice.toStringAsFixed(0)}'),
       ),
     );
   }
