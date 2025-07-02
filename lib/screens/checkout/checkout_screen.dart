@@ -343,23 +343,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     String? hintText,
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
-    TextStyle? textStyle, // Added textStyle for kiosk
+    TextStyle? textStyle,
+    String? Function(String?)? validator, // Added validator parameter
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0), // Increased padding
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: TextFormField(
         controller: controller,
-        style: textStyle, // Apply kiosk text style
+        style: textStyle,
         decoration: InputDecoration(
           labelText: labelText,
-          labelStyle: textStyle, // Apply to label
+          labelStyle: textStyle,
           hintText: hintText,
-          hintStyle: textStyle?.copyWith(color: AppColors.textMuted), // Apply to hint
-          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))), // Ensure consistent border
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16), // Adjust padding
+          hintStyle: textStyle?.copyWith(color: AppColors.textMuted),
+          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         ),
         keyboardType: keyboardType,
         maxLines: maxLines,
+        validator: validator, // Pass validator to TextFormField
       ),
     );
   }
