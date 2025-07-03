@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import './agregado_model.dart'; // Import the new Agregado model
 
 // Remove the temporary Agregado class definition that was here:

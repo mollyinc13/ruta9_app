@@ -62,10 +62,10 @@ class ProfilePlaceholderView extends StatelessWidget {
         CircleAvatar(
           radius: 50,
           backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+          backgroundColor: AppColors.surfaceDark,
           child: user.photoURL == null
               ? Icon(Icons.person, size: 50, color: AppColors.textMuted.withOpacity(0.8))
               : null,
-          backgroundColor: AppColors.surfaceDark,
         ),
         const SizedBox(height: 20),
         Text(

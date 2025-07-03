@@ -8,7 +8,6 @@ import '../widgets/product_card_skeleton.dart';
 import '../widgets/shimmer_loading.dart';
 import '../views/product/product_detail_dialog.dart';
 // AppColors might be needed if SnackBar uses it explicitly, else Theme colors are fine
-import '../core/constants/colors.dart';
 
 
 class MenuR9ZonaFrancaScreen extends StatefulWidget {

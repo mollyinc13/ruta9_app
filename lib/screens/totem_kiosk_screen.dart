@@ -5,7 +5,7 @@ import '../providers/cart_provider.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../views/product/product_detail_dialog.dart'; // Asumiendo que se reutilizará o adaptará
-import '../widgets/product_card.dart'; // Asumiendo que se reutilizará o adaptará
+// Asumiendo que se reutilizará o adaptará
 import '../core/constants/colors.dart'; // Para colores consistentes
 import 'package:collection/collection.dart'; // For groupBy
 import '../views/cart/cart_screen.dart'; // Added import for CartScreen

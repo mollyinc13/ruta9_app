@@ -11,12 +11,10 @@ class AppTheme {
 
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primaryRed,
-        secondary: AppColors.primaryYellow, // Or accentRed/accentYellow
-        background: AppColors.primaryDark,
+        secondary: AppColors.primaryYellow,
         surface: AppColors.surfaceDark, // For cards, dialogs
         onPrimary: AppColors.white,
         onSecondary: AppColors.black,
-        onBackground: AppColors.textLight,
         onSurface: AppColors.textLight,
         error: AppColors.accentRed, // Usar un rojo de la paleta definida
         onError: AppColors.white,

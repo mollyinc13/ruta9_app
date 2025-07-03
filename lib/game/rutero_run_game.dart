@@ -14,7 +14,7 @@ class RuteroRunGame extends FlameGame with TapCallbacks, HasCollisionDetection {
   late TextComponent _scoreText;
   late TextComponent _highScoreText; // Para mostrar el puntaje máximo del usuario
   int score = 0;
-  int _userHighScore = 0; // Se cargaría desde Firestore
+  final int _userHighScore = 0; // Se cargaría desde Firestore
 
   // Referencia al UID del usuario (se pasaría o se obtendría)
   String? userId;
@@ -61,15 +61,23 @@ class RuteroRunGame extends FlameGame with TapCallbacks, HasCollisionDetection {
   }
 
   void _showStartScreen() {
-    final startScreenText = TextComponent(
-      text: 'Toca para Empezar\nRutero Run!',
-      position: size / 2,
-      anchor: Anchor.center,
-      textAlign: TextAlign.center,
-      textRenderer: TextPaint(style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-    );
-    add(startScreenText);
-  }
+  final textPaint = TextPaint(
+    style: const TextStyle(
+      color: Colors.white,
+      fontSize: 28,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+
+  final startScreenText = TextComponent(
+    text: 'Toca para Empezar\nRutero Run!',
+    position: size / 2,
+    anchor: Anchor.center,
+    textRenderer: textPaint,
+  );
+
+  add(startScreenText);
+}
 
   void startGame() {
     if (_gameStarted) return;
@@ -130,14 +138,25 @@ class RuteroRunGame extends FlameGame with TapCallbacks, HasCollisionDetection {
     // _obstacleManager.stop();
     // _player.stop();
 
-    final gameOverText = TextComponent(
-      text: 'Game Over\nPuntaje: $score\nToca para reintentar',
-      position: size / 2,
-      anchor: Anchor.center,
-      textAlign: TextAlign.center,
-      textRenderer: TextPaint(style: const TextStyle(color: Colors.red, fontSize: 28, fontWeight: FontWeight.bold)),
-    );
-    add(gameOverText);
+    void _showGameOverScreen(int score) {
+  final textPaint = TextPaint(
+    style: const TextStyle(
+      color: Colors.red,
+      fontSize: 28,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+
+  final gameOverText = TextComponent(
+    text: 'Game Over\nPuntaje: $score\nToca para reintentar',
+    position: size / 2,
+    anchor: Anchor.center,
+    textRenderer: textPaint,
+  );
+
+  add(gameOverText);
+}
+
 
     // TODO: Guardar puntaje en Firestore y actualizar high score si es necesario
     // await _saveScore();

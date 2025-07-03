@@ -81,7 +81,7 @@ class CartProvider with ChangeNotifier {
       debugPrint("[CartProvider.addItem] Added new item $cartItemId. Quantity: ${_items[cartItemId]!.quantity}, itemTotalPrice: ${_items[cartItemId]!.itemTotalPrice}");
     }
 
-    debugPrint("[CartProvider.addItem] Current cart unique items: ${uniqueItemCount}, total quantity: ${itemCount}, grand total price: \$${totalPrice.toStringAsFixed(0)}");
+    debugPrint("[CartProvider.addItem] Current cart unique items: $uniqueItemCount, total quantity: $itemCount, grand total price: \$${totalPrice.toStringAsFixed(0)}");
     notifyListeners();
     debugPrint("[CartProvider.addItem] Exited addItem method and called notifyListeners().");
   }

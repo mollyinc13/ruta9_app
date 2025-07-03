@@ -1,5 +1,5 @@
 // lib/models/cart_item_model.dart
-import 'package:flutter/foundation.dart'; // For @required if using older Flutter, or for general Flutter types.
+// For @required if using older Flutter, or for general Flutter types.
 import 'product_model.dart';
 import 'agregado_model.dart';
 
